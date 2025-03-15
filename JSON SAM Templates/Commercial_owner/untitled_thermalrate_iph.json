@@ -1,0 +1,8 @@
+{
+	"thermal_rate_escalation" : [ 0 ],
+	"thermal_conversion_efficiency" : 85,
+	"thermal_buy_rate_option" : 0,
+	"thermal_buy_rate_flat_heat_btu" : 14,
+	"thermal_timestep_buy_rate_heat_btu" : [ 0 ],
+	"thermal_monthly_buy_rate_heat_btu" : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+}
