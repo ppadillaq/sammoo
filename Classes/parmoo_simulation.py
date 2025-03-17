@@ -11,8 +11,8 @@ class ParMOOSim:
 
         for key,value in desVarDict.items():
             self.my_moop.addDesign({'name': key,
-                                    'des_type': "integer",
-                                    'lb': value[0], 'ub': value[1]})
+                                    'des_type': value[1],
+                                    'lb': value[0][0], 'ub': value[0][1]})
         # Note: the 'levels' key can contain a list of strings, but jax can only jit
         # numeric types, so integer level IDs are strongly recommended
         
@@ -26,8 +26,7 @@ class ParMOOSim:
         for key,value in objDict.items():
             self.my_moop.addObjective({'name': key, 'obj_func': value})
 
-        #self.my_moop.addObjective({'name': "-CF", 'obj_func': f1})
-        #self.my_moop.addObjective({'name': "LCOE", 'obj_func': f2})
+
 
         #def c1(x, s): return 0.1 - x["x1"]
         #my_moop.addConstraint({'name': "c1", 'constraint': c1})

@@ -1,6 +1,9 @@
+import sys
+sys.path.append(".")
+
 from Classes.config_selection import ConfigSelection
 
-config = ConfigSelection("Commercial owner")
+config = ConfigSelection("Commercial owner",False)
 modules = config.get_modules()
 
 for m in modules:
