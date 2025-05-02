@@ -1,17 +1,11 @@
-
-
 import sys
 sys.path.append(".")
 
 from Classes.config_selection import ConfigSelection
 from Classes.parmoo_simulation import ParMOOSim
 
-config = ConfigSelection("Commercial owner")
-modules = config.get_modules()
-[system_model, utility_model, thermalrate_model, cashloan_model] = modules
-
-designVariables = {"tshours": ([2,15],"integer"),
-                   "specified_solar_multiple": ([0.9,2.0],"continuous"),
+designVariables = {"tshours": ([0,20],"integer"),
+                   "specified_solar_multiple": ([0.7,3.5],"continuous"),
                    "T_loop_out":([200,400],"integer")}
 # "tshours", # hours of storage at design point
 #"I_bn_des", # solar irradiation at design
@@ -20,8 +14,12 @@ designVariables = {"tshours": ([2,15],"integer"),
 
 def f1(x, s): return s["SAMOptim"][0]
 def f2(x, s): return s["SAMOptim"][1]
-objFunctions = {"LCOE": f1,
-                "payback": f2}
+def f3(x, s): return s["SAMOptim"][2]
+
+objFunctions = {"LCOE": f1}
+# objFunctions = {"LCOE": f1,
+#                 "payback": f2,
+#                 "-NPV": f3}
 
 # functions: -CF, LCOE, payback, savings
 
@@ -30,6 +28,10 @@ objFunctions = {"LCOE": f1,
 #    solar_field_group_object = getattr(system_model,'SolarField')
 #    setattr(solar_field_group_object, 'Row_Distance', Row_Distance )
 #    return sx
+
+config = ConfigSelection("Commercial owner")
+modules = config.get_modules()
+[system_model, utility_model, thermalrate_model, cashloan_model] = modules
 
 my_moop = ParMOOSim(config.sim_func, designVariables, objFunctions)
 my_moop.solve()

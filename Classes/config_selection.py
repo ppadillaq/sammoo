@@ -77,6 +77,7 @@ class ConfigSelection:
         #LCOE = finance_model.Outputs.lcoe_fcr
         #sx = np.array([-1*CF,LCOE])
         savings = self.modules[1].Outputs.savings_year1
-        sx = np.array([LCOE,payback])
+        #sx = np.array([LCOE,payback,-1*npv])
+        sx = np.array([LCOE])
         return sx
     
