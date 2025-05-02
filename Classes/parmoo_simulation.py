@@ -6,7 +6,7 @@ from parmoo.acquisitions import RandomConstraint
 from parmoo.viz import scatter
 
 class ParMOOSim:
-    def __init__(self, sim_func, desVarDict, objDict, search_budget=100, switch_after=5, batch_size=5, auto_switch=False):
+    def __init__(self, sim_func, desVarDict, objDict, search_budget=100, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3):
         """
         Initializes a ParMOOSim optimization object.
 
@@ -25,9 +25,17 @@ class ParMOOSim:
                 Number of acquisitions to add when switching to batch.
             auto_switch: bool
                 Whether to switch automatically from sequential to batch.
+            epsilon: float
+                Threshold to detect convergence (used to trigger auto-switch to batch if improvement < epsilon).
         """
         # Fix the random seed for reproducibility using the np_random_gen hyperparams
         self.my_moop = MOOP(GlobalSurrogate_PS, hyperparams={'np_random_gen': 0})
+
+        # Save configuration
+        self.desVarDict = desVarDict
+        self.objDict = objDict
+        self.sim_func = sim_func
+        self.search_budget = search_budget
 
         # Add design variables
         for key,value in desVarDict.items():
@@ -62,6 +70,8 @@ class ParMOOSim:
         self.auto_switch = auto_switch
         self.prev_objectives = []  # guardará las medias de los objetivos previos
 
+        self.epsilon = epsilon
+
         #def c1(x, s): return 0.1 - x["x1"]
         #my_moop.addConstraint({'name': "c1", 'constraint': c1})
 
@@ -82,6 +92,10 @@ class ParMOOSim:
 
     def optimize_step(self, plot_output=None):
         """Execute a single optimization step (one acquisition)."""
+        if self.switched_to_batch:
+            print("[WARN] Already in batch mode. Use solve_all() instead of optimize_step().")
+            return
+
         self.num_steps += 1
         print(f"Optimizing step {self.num_steps} (sequential)...")
         self.my_moop.optimize()
@@ -108,7 +122,7 @@ class ParMOOSim:
                     self.add_acquisition()
                 self.solve_all(plot_output=plot_output)
 
-    def solve_all(self):
+    def solve_all(self, plot_output=None):
         """
         Executes all pending acquisitions (batch optimization).
         Automatically called if auto_switch is enabled.
@@ -116,6 +130,9 @@ class ParMOOSim:
         print(f"Executing {self.batch_size if self.switched_to_batch else 'all pending'} acquisitions in batch...")
         self.my_moop.solve()
         print("Executed all pending acquisitions.")
+
+        if plot_output:
+            self.plot_results(output=plot_output)
 
     def get_results(self, format="pandas"):
         """Retrieve Pareto front results."""
@@ -153,11 +170,84 @@ class ParMOOSim:
             steps: int
                 Number of acquisitions to perform interactively.
         """
+        available_acquisitions = {
+            "random": RandomConstraint,
+            # aquí puedes añadir más métodos si tienes otros, por ejemplo:
+            # "expected_improvement": ExpectedImprovementConstraint,
+        }
+
         for step in range(steps):
-            input(f"\nStep {step + 1}/{steps}: Press Enter to execute next acquisition...")
-            self.add_acquisition()  # Optionally allow user to choose method interactively
+            print(f"\nStep {step + 1}/{steps}: Available acquisition functions:")
+            for i, name in enumerate(available_acquisitions.keys(), 1):
+                print(f"  {i}. {name}")
+
+            # Choose acquisition function
+            valid = False
+            while not valid:
+                try:
+                    choice = int(input(f"Select acquisition function (1-{len(available_acquisitions)}): "))
+                    if 1 <= choice <= len(available_acquisitions):
+                        acquisition_name = list(available_acquisitions.keys())[choice - 1]
+                        acquisition_func = available_acquisitions[acquisition_name]
+                        valid = True
+                    else:
+                        print("Invalid choice. Try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+
+            print(f"Selected acquisition: {acquisition_name}")
+            self.add_acquisition(acquisition_method=acquisition_func)
+
+            # Optimize
             self.optimize_step()
             self.plot_results()
+
+            # Show results
             results = self.get_results()
             print(f"Current Pareto front ({len(results)} points):")
             print(results)
+
+
+
+    def reset(self):
+        """
+        Resets the MOOP instance to its initial state (designs, objectives, simulation),
+        clearing acquisitions, Pareto front, and counters, but keeping the problem definition.
+        """
+        print("[INFO] Resetting MOOP to initial state...")
+
+        # Recreate the MOOP instance
+        self.my_moop = MOOP(GlobalSurrogate_PS, hyperparams={'np_random_gen': 0})
+
+        # Re-add design variables
+        for key, value in self.desVarDict.items():
+            self.my_moop.addDesign({
+                'name': key,
+                'des_type': value[1],
+                'lb': value[0][0],
+                'ub': value[0][1]
+            })
+
+        # Re-add simulation
+        self.my_moop.addSimulation({
+            'name': "SAMOptim",
+            'm': len(self.objDict),
+            'sim_func': self.sim_func,
+            'search': LatinHypercube,
+            'surrogate': GaussRBF,
+            'hyperparams': {'search_budget': self.search_budget}
+        })
+
+        # Re-add objectives
+        for key, value in self.objDict.items():
+            self.my_moop.addObjective({'name': key, 'obj_func': value})
+
+        # Reset internal state
+        self.num_steps = 0
+        self.prev_objectives = []
+        self.switched_to_batch = False
+
+        # Optionally: re-add initial acquisitions (if needed)
+        self.initial_acquisitions(3)
+
+        print("[INFO] Reset complete.")
