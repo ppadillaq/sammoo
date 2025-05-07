@@ -6,15 +6,13 @@ from parmoo.acquisitions import RandomConstraint
 from parmoo.viz import scatter
 
 class ParMOOSim:
-    def __init__(self, config, desVarDict, search_budget=10, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3):
+    def __init__(self, config, search_budget=10, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3):
         """
         Initializes a ParMOOSim optimization object.
 
         Parameters:
-            config: object
+            config: ConfigSelection
                 ConfigSelection object.
-            desVarDict: dict
-                Dictionary of design variables.
             objective_names: list
                 List of objective functions names.
             search_budget: int
@@ -32,13 +30,13 @@ class ParMOOSim:
         self.my_moop = MOOP(GlobalSurrogate_PS, hyperparams={'np_random_gen': 0})
 
         # Save configuration
-        self.desVarDict = desVarDict
+        self.design_var_dict = config.design_variables # dictionary of design variables
         self.objective_names = config.selected_outputs
         self.sim_func = config.sim_func
         self.search_budget = search_budget
 
         # Add design variables
-        for key,value in desVarDict.items():
+        for key,value in self.design_var_dict.items():
             self.my_moop.addDesign({
                 'name': key,
                 'des_type': value[1],
@@ -235,7 +233,7 @@ class ParMOOSim:
         self.my_moop = MOOP(GlobalSurrogate_PS, hyperparams={'np_random_gen': 0})
 
         # Re-add design variables
-        for key, value in self.desVarDict.items():
+        for key, value in self.design_var_dict.items():
             self.my_moop.addDesign({
                 'name': key,
                 'des_type': value[1],

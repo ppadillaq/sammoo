@@ -30,9 +30,9 @@ designVariables = {"tshours": ([0,20],"integer"),
                    "T_loop_out":([200,400],"integer")}
 
 objFunctions = ["LCOE", "Payback"]
-config = ConfigSelection("Commercial owner", objFunctions)
+config = ConfigSelection("Commercial owner", objFunctions, designVariables)
 modules = config.get_modules()
 [system_model, utility_model, thermalrate_model, cashloan_model] = modules
 
-my_moop = ParMOOSim(config, designVariables)
+my_moop = ParMOOSim(config)
 my_moop.solve_all(sim_max=1)

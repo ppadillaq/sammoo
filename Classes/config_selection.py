@@ -9,9 +9,18 @@ import PySAM.CashloanHeat as cl
 
 
 class ConfigSelection:
-    def __init__(self, config, selected_outputs, use_default = False):
-        self.outputs_dict = {}
+    def __init__(self, config, selected_outputs, design_variables, use_default = False):
+        """
+        Initializes a configuration for a PySAM simulation.
+
+        Parameters:
+            config: ConfigSelection
+                ConfigSelection object.
+            selected_outputs: list
+                List of objective functions names.
+        """
         self.selected_outputs = selected_outputs
+        self.design_variables = design_variables
 
         # the user does not need to know how SAM outputs are called internally
         self.output_name_map = {
@@ -22,6 +31,7 @@ class ConfigSelection:
             "Savings": "savings_year1",
             # Add more if needed
         }
+
         self.config = config
         self.use_default = use_default
         if self.use_default:
@@ -32,6 +42,14 @@ class ConfigSelection:
         self.solar_field_group_object = getattr(system_model,'SolarField')
         self.TES_group_object = getattr(system_model,'TES')
         self.Controller_group_object = getattr(system_model,'Controller')
+
+        self.variable_to_group = {
+            "specified_solar_multiple": self.Controller_group_object,
+            "I_bn_des": self.solar_field_group_object,
+            "T_loop_out": self.solar_field_group_object,
+            "tshours": self.TES_group_object,
+            "h_tank_in": self.TES_group_object
+        }
 
         cwd = os.getcwd()
         path = os.path.join(cwd, "JSON SAM Templates")
@@ -69,23 +87,6 @@ class ConfigSelection:
                             except:
                                 print("Not recognized key: " + k)
     
-    """     def _collect_outputs(self):
-            self.outputs_dict = {}
-            for module in self.modules:
-                if hasattr(module, "Outputs"):
-                    outputs_group = getattr(module, "Outputs")
-                    for attr in dir(outputs_group):
-                        if not attr.startswith("_"):
-                            try:
-                                value = getattr(outputs_group, attr)
-                                if not callable(value):
-                                    self.outputs_dict[attr] = value
-                            except RuntimeError as e:
-                                # Handle PySAM's unassigned output
-                                print(f"Output '{attr}' not available in module {module.__class__.__name__}: {e}")
-                            except Exception as e:
-                                print(f"Unexpected error retrieving '{attr}': {e}") """
-    
     def _collect_outputs(self):
         outputs = []
         for key in self.selected_outputs:
@@ -111,11 +112,12 @@ class ConfigSelection:
         return self.modules
     
     def sim_func(self, x):
-        #setattr(self.solar_field_group_object, 'I_bn_des', x["I_bn_des"] )
-        setattr(self.Controller_group_object, 'specified_solar_multiple', x["specified_solar_multiple"] )
-        setattr(self.solar_field_group_object, 'T_loop_out', x["T_loop_out"] )
-        setattr(self.TES_group_object, 'tshours', x["tshours"] )
-        #setattr(TES_group_object, 'h_tank_in', x["h_tank_in"] )
+        for var_name in x:
+            group_object = self.variable_to_group.get(var_name)
+            if group_object is not None:
+                setattr(group_object, var_name, x[var_name])
+            else:
+                print(f"Warning: Variable '{var_name}' not mapped to any group object")
 
         for m in self.modules:
             m.execute(1)
