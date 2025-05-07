@@ -77,16 +77,17 @@ class ParMOOSim:
 
     def _add_objectives(self):
         for idx, name in enumerate(self.objective_names):
-            def make_obj_func(index):
+            # Detect if it is a maximization problem
+            is_max = name.startswith("-")
+            sign = 1
+            if is_max:
+                sign = -1
+            def make_obj_func(index, sign=1):
                 def obj_func(x, s):
-                    return s["SAMOptim"][index]
+                    return sign * s["SAMOptim"][index]
                 return obj_func
-            #def obj_func(x, s, index=idx):
-            #    return s["SAMOptim"][index]
-            self.my_moop.addObjective({'name': name, 'obj_func': make_obj_func(idx)})
-
-    def _obj_func_wrapper(self, x, s, index):
-        return s["SAMOptim"][index]
+            
+            self.my_moop.addObjective({'name': name, 'obj_func': make_obj_func(idx, sign)})
     
     def initial_acquisitions(self, n=3):
         """Add an initial number of acquisitions."""

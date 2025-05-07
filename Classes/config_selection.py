@@ -25,12 +25,14 @@ class ConfigSelection:
         # the user does not need to know how SAM outputs are called internally
         self.output_name_map = {
             "LCOE": "lcoe_real",
-            "NPV": "npv",
+            "-NPV": "npv",
             "Payback": "payback",
-            "Capacity Factor": "capacity_factor",
-            "Savings": "savings_year1",
+            "-Capacity Factor": "capacity_factor",
+            "-Savings": "savings_year1",
+            "CF": "capacity_factor",
             # Add more if needed
         }
+        #LCOE = finance_model.Outputs.lcoe_fcr
 
         self.config = config
         self.use_default = use_default
@@ -45,10 +47,11 @@ class ConfigSelection:
 
         self.variable_to_group = {
             "specified_solar_multiple": self.Controller_group_object,
-            "I_bn_des": self.solar_field_group_object,
-            "T_loop_out": self.solar_field_group_object,
-            "tshours": self.TES_group_object,
-            "h_tank_in": self.TES_group_object
+            "I_bn_des": self.solar_field_group_object, # solar irradiation at design
+            "T_loop_out": self.solar_field_group_object, # Target loop outlet temperature [C]
+            "tshours": self.TES_group_object, # hours of storage at design point
+            "h_tank_in": self.TES_group_object, # total height of tank 'lb': 10, 'ub': 20
+            "Row_Distance": self.solar_field_group_object
         }
 
         cwd = os.getcwd()
