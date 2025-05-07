@@ -6,17 +6,17 @@ from parmoo.acquisitions import RandomConstraint
 from parmoo.viz import scatter
 
 class ParMOOSim:
-    def __init__(self, sim_func, desVarDict, objDict, search_budget=100, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3):
+    def __init__(self, config, desVarDict, search_budget=10, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3):
         """
         Initializes a ParMOOSim optimization object.
 
         Parameters:
-            sim_func: function
-                Simulation function.
+            config: object
+                ConfigSelection object.
             desVarDict: dict
                 Dictionary of design variables.
-            objDict: dict
-                Dictionary of objective functions.
+            objective_names: list
+                List of objective functions names.
             search_budget: int
                 Initial sampling budget.
             switch_after: int
@@ -33,8 +33,8 @@ class ParMOOSim:
 
         # Save configuration
         self.desVarDict = desVarDict
-        self.objDict = objDict
-        self.sim_func = sim_func
+        self.objective_names = config.selected_outputs
+        self.sim_func = config.sim_func
         self.search_budget = search_budget
 
         # Add design variables
@@ -52,16 +52,15 @@ class ParMOOSim:
         # Add simulation
         self.my_moop.addSimulation({
             'name': "SAMOptim",
-            'm': len(objDict),
-            'sim_func': sim_func,
+            'm': len(self.objective_names),
+            'sim_func': config.sim_func,
             'search': LatinHypercube,
             'surrogate': GaussRBF,
             'hyperparams': {'search_budget': search_budget}
         })
 
         # Add objectives
-        for key,value in objDict.items():
-            self.my_moop.addObjective({'name': key, 'obj_func': value})
+        self._add_objectives()
 
         self.num_steps = 0
         self.switch_after = switch_after
@@ -78,6 +77,19 @@ class ParMOOSim:
         # By default, add 3 acquisitions initially
         self.initial_acquisitions(3)
 
+    def _add_objectives(self):
+        for idx, name in enumerate(self.objective_names):
+            def make_obj_func(index):
+                def obj_func(x, s):
+                    return s["SAMOptim"][index]
+                return obj_func
+            #def obj_func(x, s, index=idx):
+            #    return s["SAMOptim"][index]
+            self.my_moop.addObjective({'name': name, 'obj_func': make_obj_func(idx)})
+
+    def _obj_func_wrapper(self, x, s, index):
+        return s["SAMOptim"][index]
+    
     def initial_acquisitions(self, n=3):
         """Add an initial number of acquisitions."""
         for _ in range(n):
@@ -122,17 +134,16 @@ class ParMOOSim:
                     self.add_acquisition()
                 self.solve_all(plot_output=plot_output)
 
-    def solve_all(self, plot_output=None):
+    def solve_all(self, sim_max, plot_output=None):
         """
         Executes all pending acquisitions (batch optimization).
         Automatically called if auto_switch is enabled.
         """
         print(f"Executing {self.batch_size if self.switched_to_batch else 'all pending'} acquisitions in batch...")
-        self.my_moop.solve()
+        self.my_moop.solve(sim_max=sim_max)
         print("Executed all pending acquisitions.")
 
-        if plot_output:
-            self.plot_results(output=plot_output)
+        self.plot_results(output=plot_output)
 
     def get_results(self, format="pandas"):
         """Retrieve Pareto front results."""
@@ -159,8 +170,12 @@ class ParMOOSim:
             plot_results()              # shows interactive plot
             plot_results(output="jpeg") # saves plot as 'pareto_front.jpeg'
         """
-        scatter(self.my_moop, output=output)
-        print(f"Pareto front plotted {'to ' + output if output else 'interactively'}")
+        if output is None:
+            scatter(self.my_moop)
+            print("Pareto front plotted interactively")
+        else:
+            scatter(self.my_moop, output=output)
+            print(f"Pareto front plotted to {output}")
 
     def interactive_loop(self, steps=5):
         """
@@ -231,7 +246,7 @@ class ParMOOSim:
         # Re-add simulation
         self.my_moop.addSimulation({
             'name': "SAMOptim",
-            'm': len(self.objDict),
+            'm': len(self.objective_names),
             'sim_func': self.sim_func,
             'search': LatinHypercube,
             'surrogate': GaussRBF,
@@ -239,8 +254,7 @@ class ParMOOSim:
         })
 
         # Re-add objectives
-        for key, value in self.objDict.items():
-            self.my_moop.addObjective({'name': key, 'obj_func': value})
+        self._add_objectives()
 
         # Reset internal state
         self.num_steps = 0

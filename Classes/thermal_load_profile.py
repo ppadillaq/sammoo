@@ -33,7 +33,8 @@ class LPGConsumptionProfile:
             mask = (df.index.month == month) & df['active']
             active_hours = mask.sum()
             if active_hours > 0:
-                kg = tonnes * 1000
+                #kg = tonnes * 1000
+                kg = tonnes
                 total_energy_kj = kg * self.pci_kj_per_kg
                 hourly_energy = total_energy_kj / active_hours
                 df.loc[mask, 'energy_kj'] = hourly_energy
@@ -122,4 +123,4 @@ if __name__ == "__main__":
         profile.print_summary()
         profile.plot_year()
         profile.plot_week("2019-03-07")
-        #profile.export_csv()
+        profile.export_csv()
