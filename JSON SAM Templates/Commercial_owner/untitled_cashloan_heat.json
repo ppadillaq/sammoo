@@ -6,7 +6,7 @@
 	"prop_tax_assessed_decline" : 0,
 	"real_discount_rate" : 6.4000000000000004,
 	"insurance_rate" : 0,
-	"system_capacity" : 500,
+	"system_capacity" : 5000,
 	"loan_term" : 25,
 	"loan_rate" : 7,
 	"debt_fraction" : 60,
@@ -134,7 +134,7 @@
 	"pbi_sta_amount_heat_btu" : [ 0 ],
 	"pbi_uti_amount_heat_btu" : [ 0 ],
 	"pbi_oth_amount_heat_btu" : [ 0 ],
-	"total_installed_cost" : 2807724.2882926827,
+	"total_installed_cost" : 13379350.153170731,
 	"salvage_percentage" : 0,
 	"batt_salvage_percentage" : 0
 }

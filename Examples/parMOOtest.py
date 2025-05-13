@@ -25,8 +25,6 @@ def sim_func(x):
    #I_bn_des = x["I_bn_des"]
    h_tank = x["h_tank"]
 
-   #solar_field_group_object = getattr(system_model,'SolarField')
-   #setattr(solar_field_group_object, 'I_bn_des', I_bn_des )
 
    TES_group_object = getattr(system_model,'TES')
    setattr(TES_group_object, 'tshours', tshours )

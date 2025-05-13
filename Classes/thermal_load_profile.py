@@ -27,19 +27,19 @@ class LPGConsumptionProfile:
         df['active'] = df['is_weekday'] & df['is_working_hour']
         
         # Initialize energy series
-        df['energy_kj'] = 0.0
+        df['energy_kJ'] = 0.0
         
         for month, tonnes in self.monthly_tonnes.items():
             mask = (df.index.month == month) & df['active']
             active_hours = mask.sum()
             if active_hours > 0:
                 #kg = tonnes * 1000
-                kg = tonnes
-                total_energy_kj = kg * self.pci_kj_per_kg
-                hourly_energy = total_energy_kj / active_hours
-                df.loc[mask, 'energy_kj'] = hourly_energy
+                kg = tonnes * 10
+                total_energy_kJ = kg * self.pci_kj_per_kg
+                hourly_energy = total_energy_kJ / active_hours
+                df.loc[mask, 'energy_kJ'] = hourly_energy
         
-        return df['energy_kj']
+        return df['energy_kJ']
 
     def plot_year(self):
         """Plot the yearly consumption profile."""
@@ -79,17 +79,20 @@ class LPGConsumptionProfile:
         plt.show()
 
     def export_csv(self, filename="lpg_profile.csv"):
-        """Export the hourly profile to a CSV file."""
-        self.hourly_series.to_csv(filename, header=True)
+        """Export the hourly profile to a CSV file with energy in kJ, kWh, and power in kW."""
+        df = self.hourly_series.to_frame(name='energy_kJ')
+        df['energy_kWh'] = df['energy_kJ'] / 3600
+        df['power_kW'] = df['energy_kWh']  # since it's per hour, energy and power are numerically the same
+        df.to_csv(filename, header=True)
         print(f"[INFO] Hourly profile exported to {filename}")
 
     def print_summary(self):
         """Print total input and calculated totals by month for verification."""
         print("\n=== LPG Consumption Summary ===")
         input_totals = {month: tonnes * 1000 * self.pci_kj_per_kg for month, tonnes in self.monthly_tonnes.items()}
-        df = self.hourly_series.to_frame(name='energy_kj')
+        df = self.hourly_series.to_frame(name='energy_kJ')
         df['month'] = df.index.month
-        calculated_totals = df.groupby('month')['energy_kj'].sum()
+        calculated_totals = df.groupby('month')['energy_kJ'].sum()
         
         print(f"{'Month':<10} {'Input Energy (GJ)':>20} {'Calc. Energy (GJ)':>20}")
         for month in range(1, 13):
