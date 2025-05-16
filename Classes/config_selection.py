@@ -151,6 +151,23 @@ class ConfigSelection:
                 print(f"Warning: Output '{internal_key}' not found in any module.")
         return np.array(outputs)
     
+    def set_debug_outputs(self, additional_outputs):
+        """
+        Appends extra outputs to the current list of selected outputs.
+
+        This is useful for debugging or extended post-analysis,
+        allowing you to retrieve variables that were not used as objectives
+        during optimization but are still of interest.
+
+        Parameters:
+            additional_outputs (list of str): List of user-facing output names
+                                            (as defined in output_name_map) to add.
+        """
+        # Combine current selected outputs with new ones, removing duplicates
+        all_outputs = list(set(self.selected_outputs + additional_outputs))
+        self.selected_outputs = all_outputs
+        print(f"[INFO] selected_outputs updated to include {len(additional_outputs)} additional variables.")
+    
     def get_modules(self):
         return self.modules
     
