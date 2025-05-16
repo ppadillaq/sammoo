@@ -90,6 +90,46 @@ class ConfigSelection:
                             except:
                                 print("Not recognized key: " + k)
     
+    def get_input(self, key):
+        for module in self.modules:
+            try:
+                return module.value(key)
+            except Exception:
+                continue
+        print(f"[WARN] Input variable '{key}' not found.")
+        return None
+    
+    def set_input(self, key, value):
+        """
+        Sets the value of any input parameter in the loaded PySAM modules.
+
+        Parameters:
+            key (str): The name of the input variable to set.
+            value (any): The value to assign to the input variable.
+        """
+        found = False
+        for module in self.modules:
+            try:
+                module.value(key, value)
+                found = True
+                break
+            except Exception as e:
+                module_name = module.__class__.__name__
+                print(f"[DEBUG] Failed to set '{key}' in module '{module_name}': {e}")
+                continue
+        if not found:
+            print(f"[WARN] Input variable '{key}' not found in any loaded module.")
+
+    def set_inputs(self, inputs_dict):
+        """
+        Sets multiple input values at once from a dictionary.
+
+        Parameters:
+            inputs_dict (dict): Keys are input variable names, values are the values to assign.
+        """
+        for key, value in inputs_dict.items():
+            self.set_input(key, value)
+    
     def _collect_outputs(self):
         outputs = []
         for key in self.selected_outputs:
