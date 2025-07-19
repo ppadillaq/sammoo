@@ -26,7 +26,7 @@ It allows you to:
 
 ## 🗂️ Project Structure
 
-
+```
 sam-model-optim/
 ├── samsimopt/ # Core package
 │ ├── init.py
@@ -39,7 +39,7 @@ sam-model-optim/
 ├── README.md
 ├── pyproject.toml
 ├── MANIFEST.in
-
+```
 
 
 ---
@@ -49,7 +49,7 @@ sam-model-optim/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/sam-model-optim.git
+git clone https://github.com/ppadillaq/sam-model-optim.git
 cd sam-model-optim
 ```
 
