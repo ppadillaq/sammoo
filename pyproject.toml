@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "samsimopt"
+version = "0.1.0"
+description = "Multi-objective optimization of CSP models via PySAM and ParMOO"
+authors = [
+    { name="Pedro Padilla Quesada", email="pedro_padilla_q@hotmail.com" }
+]
+dependencies = [
+    "numpy",
+    "PySAM",
+    "parmoo",
+    "matplotlib"
+]
+requires-python = ">=3.8"
+
+[tool.setuptools]
+packages = ["samsimopt"]
+include-package-data = true
