@@ -32,15 +32,16 @@ import pandas as pd
 # Diseño del sistema
 designVariables = {
     "tshours": ([0, 20], "integer"),
-    "specified_solar_multiple": ([0.7, 3.5], "continuous"),
+    "specified_solar_multiple": ([0.7, 4.0], "continuous"),
     "T_loop_out": ([200, 400], "integer")
 }
 
 # Lista de funciones objetivo a estudiar por separado
 objectives = [
-    ("-Savings", "Maximize Year 1 Savings"),
+    ("-LCS", "Maximize Life Cycle Savings"),
     ("LCOE", "Minimize Levelized Cost of Energy"),
-    ("Payback", "Minimize Simple Payback Period")
+    ("Payback", "Minimize Simple Payback Period"),
+    ("-NPV", "Maximize Net Present Value"),
 ]
 
 # Almacena los mejores resultados de cada caso
@@ -61,15 +62,26 @@ for obj_name, description in objectives:
     results = moop.get_results()
     best = results.sort_values(by=obj_name).iloc[0] if not obj_name.startswith("-") else results.sort_values(by=obj_name, ascending=False).iloc[0]
 
+    # Añadir métricas adicionales ejecutando el mejor punto
+    config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV"])
+    x_input = {var: best[var] for var in designVariables.keys()}
+    config.set_inputs(x_input)
+    extended_outputs = config.sim_func(x_input)
+
+    output_map = {name: val for name, val in zip(config.selected_outputs, extended_outputs)}
+
     # Guardar resumen
     summary_rows.append({
         "Objective": description,
-        "tshours": best["tshours"],
-        "SM": best["specified_solar_multiple"],
-        "T_loop_out": best["T_loop_out"],
-        "Savings [€]": best["-Savings"] if "-Savings" in results.columns else "-",
-        "LCOE [€/kWh]": best["LCOE"] if "LCOE" in results.columns else "-",
-        "Payback [yrs]": best["Payback"] if "Payback" in results.columns else "-"
+        "tshours": x_input["tshours"],
+        "SM": x_input["specified_solar_multiple"],
+        "T_loop_out": x_input["T_loop_out"],
+        "LCS [€]": output_map.get("-LCS", "-"),
+        "LCOE [€/kWh]": output_map.get("LCOE", "-"),
+        "Payback [yrs]": output_map.get("Payback", "-"),
+        #"LCS [€]": best["-LCS"] if "-LCS" in results.columns else "-",
+        #"LCOE [€/kWh]": best["LCOE"] if "LCOE" in results.columns else "-",
+        #"Payback [yrs]": best["Payback"] if "Payback" in results.columns else "-"
     })
 
 # Mostrar tabla resumen

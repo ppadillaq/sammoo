@@ -37,7 +37,7 @@ designVariables = {
 }
 
 # Define the objective functions
-objectiveFunctions = ["LCOE", "Payback", "-Savings"]
+objectiveFunctions = ["LCOE", "Payback", "-LCS"]
 
 # Create the simulation configuration
 config = ConfigSelection("Commercial owner", objectiveFunctions, designVariables)
@@ -59,3 +59,21 @@ my_moop.solve_all(sim_max=1)
 results = my_moop.get_results()
 print("Multi-objective optimization results for varying Row_Distance:")
 print(results)
+
+# Add extra outputs for debugging or extended reporting
+config.set_debug_outputs([
+    "utility_bill_wo_sys_year1",
+    "utility_bill_w_sys_year1",
+    "annual_energy"
+])
+
+print("\nExtended information for each Pareto-optimal solution:")
+
+for i, row in results.iterrows():
+    print(f"\n--- Solution {i+1} ---")
+    x_input = {var: row[var] for var in designVariables.keys()}
+    config.set_inputs(x_input)
+    extended_outputs = config.sim_func(x_input)
+    
+    for name, val in zip(config.selected_outputs, extended_outputs):
+        print(f"{name}: {val}")

@@ -9,7 +9,7 @@ import PySAM.CashloanHeat as cl
 
 
 class ConfigSelection:
-    def __init__(self, config, selected_outputs, design_variables, use_default = False):
+    def __init__(self, config, selected_outputs, design_variables, use_default = True):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -30,6 +30,10 @@ class ConfigSelection:
             "-Capacity Factor": "capacity_factor",
             "-Savings": "savings_year1",
             "CF": "capacity_factor",
+            "utility_bill_wo_sys_year1": "utility_bill_wo_sys_year1",
+            "utility_bill_w_sys_year1": "utility_bill_w_sys_year1",
+            "annual_energy": "annual_energy",
+            "-LCS": "cf_discounted_savings",
             # Add more if needed
         }
         #LCOE = finance_model.Outputs.lcoe_fcr
@@ -68,7 +72,7 @@ class ConfigSelection:
                 if self.use_default:
                     utility_model = utility.from_existing(system_model,"PhysicalTroughIPHCommercial")
                     thermalrate_model = tr.from_existing(system_model,"PhysicalTroughIPHCommercial")
-                    financial_model = cl.from_existing(system_model)
+                    financial_model = cl.from_existing(system_model,"PhysicalTroughIPHCommercial")
                 else:
                     utility_model = utility.from_existing(system_model)
                     thermalrate_model = tr.from_existing(system_model)
@@ -78,17 +82,17 @@ class ConfigSelection:
                 self.modules = [system_model, utility_model, thermalrate_model, financial_model]
 
 
-        if not self.use_default:
-            for f, m in zip(file_names, self.modules):
-                with open(dir + f + ".json", 'r') as file:
-                    data = json.load(file)
-                    # loop through each key-value pair
-                    for k, v in data.items():
-                        if k != "number_inputs":
-                            try:
-                                m.value(k, v)
-                            except:
-                                print("Not recognized key: " + k)
+
+        for f, m in zip(file_names, self.modules):
+            with open(dir + f + ".json", 'r') as file:
+                data = json.load(file)
+                # loop through each key-value pair
+                for k, v in data.items():
+                    if k != "number_inputs":
+                        try:
+                            m.value(k, v)
+                        except:
+                            print("Not recognized key: " + k)
     
     def get_input(self, key):
         for module in self.modules:
@@ -142,7 +146,11 @@ class ConfigSelection:
                         try:
                             value = getattr(outputs_group, internal_key)
                             if not callable(value):
-                                outputs.append(value)
+                                # Caso especial para LCS
+                                if key == "-LCS" and isinstance(value, (list, tuple, np.ndarray)):
+                                     outputs.append(value[-1])
+                                else:
+                                    outputs.append(value)
                                 found = True
                                 break
                         except Exception as e:
@@ -172,16 +180,20 @@ class ConfigSelection:
         return self.modules
     
     def sim_func(self, x):
-        for var_name in x:
-            group_object = self.variable_to_group.get(var_name)
-            if group_object is not None:
-                setattr(group_object, var_name, x[var_name])
-            else:
-                print(f"Warning: Variable '{var_name}' not mapped to any group object")
+        try:
+            for var_name in x:
+                group_object = self.variable_to_group.get(var_name)
+                if group_object is not None:
+                    setattr(group_object, var_name, x[var_name])
+                else:
+                    print(f"Warning: Variable '{var_name}' not mapped to any group object")
 
-        for m in self.modules:
-            m.execute(1)
+            for m in self.modules:
+                m.execute(1)
 
-        # collect and return outputs after execution
-        return self._collect_outputs()
+            # collect and return outputs after execution
+            return self._collect_outputs()
+        except Exception as e:
+            print(f"[ERROR] Simulation failed for input {x} with error: {e}")
+            return [np.nan] * len(self.selected_outputs)
     
