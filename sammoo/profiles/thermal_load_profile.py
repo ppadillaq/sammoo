@@ -1,3 +1,16 @@
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Copyright (c) 2025, Pedro Padilla Quesada
+# All rights reserved.
+#
+# This file is part of the sammoo project: a Python-based framework
+# for multi-objective optimization of renewable energy systems using
+# NREL's System Advisor Model (SAM).
+#
+# Distributed under the terms of the BSD 3-Clause License.
+# For full license text, see the LICENSE file in the project root.
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
