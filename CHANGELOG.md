@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example script: `examples/parabolicIPHcommercial_owner.py`.
 - Example script: `examples/single_objective_comparison.py`.
 - Example script: `examples/test_utility_module.py`.
-- Example script: `examples/parMOOtest.py`.
 
 ### Changed
 - Nothing.

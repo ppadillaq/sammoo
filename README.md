@@ -91,7 +91,6 @@ The `examples/` folder contains several usage scenarios of the `sammoo` package:
 - `parabolicIPHcommercial_owner.py`: Multi-objective optimization of design parameters (tshours, SM, T_loop_out).
 - `single_objective_comparison.py`: Compare optimal designs for different single-objective formulations.
 - `test_utility_module.py`: Investigate the output of the UtilityRate5 module and check consistency of billing results.
-- `parMOOtest.py`: Advanced use of `ParMOOSim` with a custom simulation function and manual PySAM setup.
 
 💡 **Note**: Example scripts (`examples/`) are not included in the PyPI installation.  
 If you want to explore the examples, please [clone the GitHub repository](https://github.com/ppadillaq/sammoo).
