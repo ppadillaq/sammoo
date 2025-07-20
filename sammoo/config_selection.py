@@ -98,7 +98,8 @@ class ConfigSelection:
                 self.modules = [system_model, utility_model, thermalrate_model, financial_model]
 
         for f, m in zip(file_names, self.modules):
-            with open(template_dir + f + ".json", 'r') as file:
+            json_path = template_dir.joinpath(f + ".json")
+            with open(json_path, 'r') as file:
                 data = json.load(file)
                 # loop through each key-value pair
                 for k, v in data.items():

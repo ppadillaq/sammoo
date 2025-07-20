@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sammoo"
-version = "1.0.0"
+version = "0.1.0"
 description = "Python-based framework for multi-objective optimization of renewable energy systems using NREL's System Advisor Model (SAM)"
 authors = [
     { name="Pedro Padilla Quesada", email="pedro_padilla_q@hotmail.com" }
@@ -22,3 +22,6 @@ requires-python = ">=3.8"
 [tool.setuptools]
 packages = ["sammoo"]
 include-package-data = true
+
+[tool.setuptools.package-data]
+sammoo = ["templates/**/*.json"]
