@@ -1,5 +1,7 @@
 # sammoo
 
+**SAMMOO: System Advisor Model Multi-Objective Optimization**
+
 **Python-based Framework for Multi-Objective Optimization of Renewable Energy Systems using NREL's System Advisor Model (SAM)**
 
 Optimization of Solar Industrial Process Heat (SIPH) systems using Concentrated Solar Power (CSP) technologies through the NREL [PySAM](https://nrel-pysam.readthedocs.io/en/latest/) package (System Advisor Model). This project was developed in the context of my Master's Thesis in Research in Industrial Technologies at the Universidad Nacional de Educación a Distancia (UNED), Spain.
@@ -84,7 +86,7 @@ pip install pysam parmoo numpy matplotlib
 ## 📈 Example Use Case
 
 ```
-from samsimopt import ConfigSelection, ParMOOSim
+from sammoo import ConfigSelection, ParMOOSim
 
 design_vars = {
     "specified_solar_multiple": [(1.0, 3.0), "float"],

@@ -24,8 +24,7 @@ Note: All optimizations use NREL PySAM via a custom simulation wrapper.
 import sys
 sys.path.append(".")
 
-from Classes.config_selection import ConfigSelection
-from Classes.parmoo_simulation import ParMOOSim
+from sammoo import ConfigSelection, ParMOOSim
 
 import pandas as pd
 

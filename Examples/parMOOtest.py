@@ -4,8 +4,7 @@ import numpy as np
 import sys
 sys.path.append(".")
 
-from Classes.config_selection import ConfigSelection
-from Classes.parmoo_simulation import ParMOOSim
+from sammoo import ConfigSelection, ParMOOSim
 
 config = ConfigSelection("LCOH Calculator")
 modules = config.get_modules()

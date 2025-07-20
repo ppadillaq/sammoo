@@ -1,8 +1,7 @@
 import sys
 sys.path.append(".")
 
-from Classes.config_selection import ConfigSelection
-from Classes.parmoo_simulation import ParMOOSim
+from sammoo import ConfigSelection, ParMOOSim
 
 designVariables = {"tshours": ([0,20],"integer"),
                    "specified_solar_multiple": ([0.7,4.0],"continuous"),

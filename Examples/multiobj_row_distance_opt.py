@@ -28,8 +28,7 @@ The goal is to identify the optimal row spacing that balances cost, performance,
 import sys
 sys.path.append(".")
 
-from Classes.config_selection import ConfigSelection
-from Classes.parmoo_simulation import ParMOOSim
+from sammoo import ConfigSelection, ParMOOSim
 
 # Define the design variable to optimize
 designVariables = {
