@@ -31,18 +31,23 @@ It allows you to:
 ## 🗂️ Project Structure
 
 ```
-sam-model-optim/
-├── samsimopt/ # Core package
-│ ├── init.py
-│ ├── config.py # Contains ConfigSelection class
-│ ├── optimizer.py # Contains ParMOOSim class
-│ └── templates/ # JSON SAM templates
-│ └── *.json
-├── examples/ # Example usage scripts
-│ └── run_example.py
+sammoo/
+├── sammoo/                           # Core package
+│ ├── __init__.py
+│ ├── config.py                       # Contains ConfigSelection class
+│ ├── optimizer.py                    # Contains ParMOOSim class
+│ └── templates/                      # JSON SAM templates
+│   ├── __init__.py
+│   └── iph_parabolic_commercial_owner/
+│      ├── __init__.py
+│      └── *.json
+├── examples/                         # Example usage scripts
+│ └── single_objective_comparison.py
 ├── README.md
+├── CHANGELOG.md
 ├── pyproject.toml
 ├── MANIFEST.in
+├── LICENSE
 ```
 
 
