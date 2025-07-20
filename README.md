@@ -81,6 +81,21 @@ sammoo/
 ├── LICENSE
 ```
 
+## 📂 Example Scripts
+
+The `examples/` folder contains several usage scenarios of the `sammoo` package:
+
+- `lpg_usage.py`: Generate and visualize an hourly thermal load profile from monthly LPG consumption.
+- `multiobj_row_distance_opt.py`: Multi-objective optimization of solar field row spacing using ParMOO.
+- `opt_layout.py`: Explore physical parameters and outputs of a CSP system using direct PySAM access.
+- `parabolicIPHcommercial_owner.py`: Multi-objective optimization of design parameters (tshours, SM, T_loop_out).
+- `single_objective_comparison.py`: Compare optimal designs for different single-objective formulations.
+- `test_utility_module.py`: Investigate the output of the UtilityRate5 module and check consistency of billing results.
+- `parMOOtest.py`: Advanced use of `ParMOOSim` with a custom simulation function and manual PySAM setup.
+
+💡 **Note**: Example scripts (`examples/`) are not included in the PyPI installation.  
+If you want to explore the examples, please [clone the GitHub repository](https://github.com/ppadillaq/sammoo).
+
 
 ---
 
