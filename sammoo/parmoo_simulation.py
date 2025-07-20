@@ -39,6 +39,13 @@ class ParMOOSim:
             epsilon: float
                 Threshold to detect convergence (used to trigger auto-switch to batch if improvement < epsilon).
         """
+        # 🔒 Check early if weather file is missing
+        weather_file = config.get_input("file_name")
+        if not weather_file or weather_file.strip() == "":
+            raise ValueError(
+                "[ERROR] Weather file not defined in configuration. Please assign a valid path to 'file_name'."
+            )
+        
         # Fix the random seed for reproducibility using the np_random_gen hyperparams
         self.my_moop = MOOP(GlobalSurrogate_PS, hyperparams={'np_random_gen': 0})
 
