@@ -11,7 +11,6 @@
 # For full license text, see the LICENSE file in the project root.
 
 
-import os
 import json
 import numpy as np
 import PySAM.TroughPhysicalIph as tpiph
@@ -19,6 +18,8 @@ import PySAM.LcoefcrDesign as lcoe
 import PySAM.Utilityrate5 as utility
 import PySAM.ThermalrateIph as tr
 import PySAM.CashloanHeat as cl
+
+from importlib.resources import files
 
 
 class ConfigSelection:
@@ -71,13 +72,10 @@ class ConfigSelection:
             "Row_Distance": self.solar_field_group_object
         }
 
-        cwd = os.getcwd()
-        path = os.path.join(cwd, "JSON SAM Templates")
-
         match self.config:
             case "LCOH Calculator":
                 finance_model = lcoe.from_existing(system_model)
-                dir = path
+                template_dir = files("sammoo.templates.iph_LCOH_calculator")
                 file_names = ["untitled_trough_physical_iph", "untitled_lcoefcr_design"]
                 self.modules = [system_model, finance_model]
 
@@ -90,14 +88,17 @@ class ConfigSelection:
                     utility_model = utility.from_existing(system_model)
                     thermalrate_model = tr.from_existing(system_model)
                     financial_model = cl.from_existing(system_model)
-                dir = os.path.join(path,'Commercial_owner','')
-                file_names = ["untitled_trough_physical_iph", "untitled_utilityrate5", "untitled_thermalrate_iph", "untitled_cashloan_heat"]
+                template_dir = files("sammoo.templates.Commercial_owner")
+                file_names = [
+                    "untitled_trough_physical_iph",
+                    "untitled_utilityrate5",
+                    "untitled_thermalrate_iph",
+                    "untitled_cashloan_heat"
+                    ]
                 self.modules = [system_model, utility_model, thermalrate_model, financial_model]
 
-
-
         for f, m in zip(file_names, self.modules):
-            with open(dir + f + ".json", 'r') as file:
+            with open(template_dir + f + ".json", 'r') as file:
                 data = json.load(file)
                 # loop through each key-value pair
                 for k, v in data.items():
