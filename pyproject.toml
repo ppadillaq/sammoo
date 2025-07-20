@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "sammoo"
 dynamic = ["version"]
 description = "Python-based framework for multi-objective optimization of renewable energy systems using NREL's System Advisor Model (SAM)"
+readme = "README.md"
 authors = [
     { name="Pedro Padilla Quesada", email="pedro_padilla_q@hotmail.com" }
 ]
