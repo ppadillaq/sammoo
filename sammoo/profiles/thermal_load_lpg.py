@@ -12,13 +12,12 @@
 
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
-class LPGConsumptionProfile:
+class ThermalLoadProfileLPG:
     def __init__(self, monthly_tonnes, pci_kj_per_kg=46000, year=2019):
         """
-        Initialize the LPGConsumptionProfile object.
+        Initialize the ThermalLoadProfileLPG object.
         
         Parameters:
             monthly_tonnes (dict): Dictionary with month names (1-12) as keys and tonnes as values.
@@ -135,7 +134,7 @@ if __name__ == "__main__":
             12: 12343
         }
 
-        profile = LPGConsumptionProfile(monthly_data)
+        profile = ThermalLoadProfileLPG(monthly_data)
         profile.print_summary()
         profile.plot_year()
         profile.plot_week("2019-03-07")
