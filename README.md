@@ -58,6 +58,7 @@ profile.export_csv("thermal_profile.csv")
 sammoo/
 ├── sammoo/                           # Core package
 │ ├── __init__.py
+│ ├── version.py
 │ ├── config.py                       # Contains ConfigSelection class
 │ ├── optimizer.py                    # Contains ParMOOSim class
 │ ├── profiles/
@@ -85,23 +86,37 @@ sammoo/
 
 ## 🚀 Quick Start
 
-### 1. Clone the repository
+### ✅ Option 1: Install from PyPI *(recommended for users)*
+
+```bash
+pip install sammoo
+```
+
+You can now use the package in Python:
+```bash
+from sammoo import ConfigSelection, ParMOOSim
+```
+> 💡 **Note:** Example scripts (`examples/`) are not included in the PyPI installation.  
+> If you want to explore examples, clone the GitHub repository instead:
 
 ```bash
 git clone https://github.com/ppadillaq/sammoo.git
 cd sammoo
+python examples/single_objective_comparison.py
 ```
 
-### 2. Install in editable mode
-
-```
+### 🛠 Option 2: Install from source (for development)
+If you want to work with the source code:
+```bash
+git clone https://github.com/ppadillaq/sammoo.git
+cd sammoo
 pip install -e .
 ```
 
-### 3. Run an example
+### ▶️ Run an example
 
-```
-python examples/run_example.py
+```bash
+python examples/single_objective_comparison.py
 ```
 
 ## 🛠 Dependencies
@@ -120,7 +135,7 @@ pip install pysam parmoo numpy matplotlib
 
 ## 📈 Example Use Case
 
-```
+```python
 from sammoo import ConfigSelection, ParMOOSim
 
 design_vars = {
@@ -168,7 +183,8 @@ This project is licensed under the **BSD 3-Clause License**.
 See the [`LICENSE`](./LICENSE) file for full text.
 
 ## 👤 Author
+
 Pedro Padilla Quesada
-Master’s in Research in Industrial Technologies
+MSc in Research in Industrial Technologies
 UNED, Spain
 
