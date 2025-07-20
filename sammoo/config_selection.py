@@ -88,7 +88,7 @@ class ConfigSelection:
                     utility_model = utility.from_existing(system_model)
                     thermalrate_model = tr.from_existing(system_model)
                     financial_model = cl.from_existing(system_model)
-                template_dir = files("sammoo.templates.Commercial_owner")
+                template_dir = files("sammoo.templates.iph_parabolic_commercial_owner")
                 file_names = [
                     "untitled_trough_physical_iph",
                     "untitled_utilityrate5",
