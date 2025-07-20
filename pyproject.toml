@@ -24,4 +24,7 @@ packages = ["sammoo"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-sammoo = ["templates/**/*.json"]
+sammoo = [
+    "templates/**/*.json",
+    "resources/solar_resource/*.csv"
+]

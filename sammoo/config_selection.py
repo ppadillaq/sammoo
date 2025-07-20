@@ -23,15 +23,24 @@ from importlib.resources import files
 
 
 class ConfigSelection:
-    def __init__(self, config, selected_outputs, design_variables, use_default = True):
+    def __init__(self, config, selected_outputs, design_variables, use_default = True, user_weather_file=None):
         """
         Initializes a configuration for a PySAM simulation.
 
         Parameters:
-            config: ConfigSelection
-                ConfigSelection object.
-            selected_outputs: list
-                List of objective functions names.
+            config (str): 
+                Configuration preset name. Supported options: "LCOH Calculator", "Commercial owner".
+            selected_outputs (list of str): 
+                List of objective functions to extract after simulation.
+            design_variables (dict): 
+                Dictionary of design variables, with bounds and types.
+            use_default (bool, optional): 
+                If True, loads PySAM modules with default technology configuration. Defaults to True.
+            user_weather_file (str, optional): 
+                Path to a user-provided weather CSV file. If None, a default internal file is used.
+    
+        Raises:
+            ValueError: If required SAM templates or weather file are missing.
         """
         self.selected_outputs = selected_outputs
         self.design_variables = design_variables
@@ -108,6 +117,35 @@ class ConfigSelection:
                             m.value(k, v)
                         except:
                             print("Not recognized key: " + k)
+
+        # 🔧 Weather file assignment logic
+        try:
+            if user_weather_file is not None:
+                # 1. User provides their own weather file → highest priority
+                self.modules[0].value("file_name", user_weather_file)
+                print(f"[INFO] Using user-provided weather file: {user_weather_file}")
+            else:
+                # 2. Check if the template already included a valid file_name
+                file_name = self.modules[0].value("file_name")
+                if not file_name:
+                    # If missing or empty → use default weather file
+                    default_weather = self.get_default_weather_path()
+                    self.modules[0].value("file_name", default_weather)
+                    print(f"[INFO] No weather file found in template. Using default: {default_weather}")
+                else:
+                    print(f"[INFO] Using weather file from template: {file_name}")
+        except Exception as e:
+            print(f"[ERROR] Failed to assign weather file: {e}")
+    
+    def get_default_weather_path(self):
+        """
+        Returns the path to the default weather file included in the package.
+        """
+        try:
+            weather_file = files("sammoo.resources.solar_resource").joinpath("tucson_az_32.116521_-110.933042_psmv3_60_tmy.csv")
+            return str(weather_file)
+        except Exception as e:
+            raise FileNotFoundError(f"[ERROR] Default weather file not found: {e}")
     
     def get_input(self, key):
         for module in self.modules:

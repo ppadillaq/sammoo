@@ -36,6 +36,9 @@ sammoo/
 │ ├── __init__.py
 │ ├── config.py                       # Contains ConfigSelection class
 │ ├── optimizer.py                    # Contains ParMOOSim class
+│ ├── resources/
+│ │   └── solar_resource/
+│ │       └── tucson.csv
 │ └── templates/                      # JSON SAM templates
 │   ├── __init__.py
 │   └── iph_parabolic_commercial_owner/
@@ -110,6 +113,16 @@ opt = ParMOOSim(cfg, auto_switch=True)
 opt.optimize_step()
 opt.plot_results()
 ```
+
+## ☀️ Weather Data
+
+The simulation requires a weather file (`file_name`) in CSV format. You can:
+
+- ✅ Provide your own via `user_weather_file="path/to/weather.csv"`
+- 🔁 Or let the framework use a built-in default (Tucson, AZ)
+
+Your custom weather files must follow the TMY3 format used by SAM.
+
 
 ## 📚 Publications
 
