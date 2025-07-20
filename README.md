@@ -1,4 +1,4 @@
-# sam-model-optim
+# sammoo
 
 **Python-based Framework for Multi-Objective Optimization of Renewable Energy Systems using NREL's System Advisor Model (SAM)**
 
@@ -51,8 +51,8 @@ sam-model-optim/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ppadillaq/sam-model-optim.git
-cd sam-model-optim
+git clone https://github.com/ppadillaq/sammoo.git
+cd sammoo
 ```
 
 ### 2. Install in editable mode
