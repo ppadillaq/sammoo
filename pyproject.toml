@@ -4,11 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "samsimopt"
-version = "0.1.0"
-description = "Multi-objective optimization of CSP models via PySAM and ParMOO"
+version = "1.0.0"
+description = "Python-based framework for multi-objective optimization of renewable energy systems using NREL's System Advisor Model (SAM)"
 authors = [
     { name="Pedro Padilla Quesada", email="pedro_padilla_q@hotmail.com" }
 ]
+license = {text = "BSD-3-Clause"}
+
 dependencies = [
     "numpy",
     "PySAM",

@@ -1,5 +1,7 @@
 # sam-model-optim
 
+**Python-based Framework for Multi-Objective Optimization of Renewable Energy Systems using NREL's System Advisor Model (SAM)**
+
 Optimization of Solar Industrial Process Heat (SIPH) systems using Concentrated Solar Power (CSP) technologies through the NREL [PySAM](https://nrel-pysam.readthedocs.io/en/latest/) package (System Advisor Model). This project was developed in the context of my Master's Thesis in Research in Industrial Technologies at the Universidad Nacional de Educación a Distancia (UNED), Spain.
 
 
@@ -114,7 +116,9 @@ Future versions may include broader support for other CSP technologies, reinforc
 
 
 ## 📄 License
-MIT License
+
+This project is licensed under the **BSD 3-Clause License**.  
+See the [`LICENSE`](./LICENSE) file for full text.
 
 ## 👤 Author
 Pedro Padilla Quesada
