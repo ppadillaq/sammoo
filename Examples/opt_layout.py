@@ -1,3 +1,5 @@
+# examples/opt_layout.py
+
 import sys
 sys.path.append(".")
 

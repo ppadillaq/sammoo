@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ThermalLoadProfileLPG` class for generating hourly thermal load profiles from monthly LPG data.
 - Added `sammoo.profiles.thermal_load_lpg` module to package structure.
 - Example script: `examples/lpg_usage.py`.
+- Example script: `examples/multiobj_row_distance_opt.py`.
+- Example script: `examples/opt_layout.py`.
+- Example script: `examples/parabolicIPHcommercial_owner.py`.
+- Example script: `examples/single_objective_comparison.py`.
+- Example script: `examples/test_utility_module.py`.
+- Example script: `examples/parMOOtest.py`.
 
 ### Changed
 - Nothing.

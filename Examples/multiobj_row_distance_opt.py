@@ -1,3 +1,5 @@
+# examples/multiobj_row_distance_opt.py
+
 """
 Multi-objective thermo-economic optimization of a parabolic trough solar power plant
 using ParMOO and NREL PySAM.
