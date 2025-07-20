@@ -115,27 +115,4 @@ class ThermalLoadProfileLPG:
         total_input = sum(input_totals.values()) / 1e6
         total_calc = calculated_totals.sum() / 1e6
         print(f"\n{'TOTAL':<10} {total_input:>20.3f} {total_calc:>20.3f}")
-
-
-# ==== Example usage ====
-if __name__ == "__main__":
-        monthly_data = {
-            1: 11343,
-            2: 15133,
-            3: 4983,
-            4: 13221,
-            5: 7250,
-            6: 12137,
-            7: 8055,
-            8: 7542,
-            9: 7605,
-            10: 12899,
-            11: 6090,
-            12: 12343
-        }
-
-        profile = ThermalLoadProfileLPG(monthly_data)
-        profile.print_summary()
-        profile.plot_year()
-        profile.plot_week("2019-03-07")
-        profile.export_csv()
+        

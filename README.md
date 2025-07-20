@@ -28,6 +28,30 @@ It allows you to:
 - Automatic switching from sequential to batch acquisition.
 - Exportable plots and CSV reports.
 
+## Thermal Load Profiles
+
+### 🔥 ThermalLoadProfileLPG
+
+The `ThermalLoadProfileLPG` class generates a realistic hourly **thermal load profile** from monthly LPG consumption (in tonnes), compatible with SAM’s “User-defined thermal load profile” input.
+
+- Working schedule: Monday to Friday, 6:00–19:00
+- Outputs hourly thermal demand in kJ/h, kWh, and kW
+- Includes:
+  - Yearly and weekly plotting
+  - CSV export
+  - Energy balance summary
+
+#### Example usage:
+
+```python
+from sammoo.profiles.thermal_load_lpg import ThermalLoadProfileLPG
+
+monthly_data = {1: 5000, 2: 4000, ..., 12: 3000}
+profile = ThermalLoadProfileLPG(monthly_data)
+profile.plot_year()
+profile.export_csv("thermal_profile.csv")
+```
+
 ## 🗂️ Project Structure
 
 ```
@@ -36,6 +60,9 @@ sammoo/
 │ ├── __init__.py
 │ ├── config.py                       # Contains ConfigSelection class
 │ ├── optimizer.py                    # Contains ParMOOSim class
+│ ├── profiles/
+│ │   ├── __init__.py
+│ │   └── thermal_load_lpg.py         # ThermalLoadProfileLPG class
 │ ├── resources/
 │ │   └── solar_resource/
 │ │       └── tucson.csv
