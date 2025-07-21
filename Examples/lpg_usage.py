@@ -1,6 +1,6 @@
 # examples/lpg_usage.py
 
-from sammoo.profiles.thermal_load_lpg import LPGConsumptionProfile
+from sammoo.profiles.thermal_load_lpg import ThermalLoadProfileLPG
 
 
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
             12: 12343
         }
 
-        profile = LPGConsumptionProfile(monthly_data)
+        profile = ThermalLoadProfileLPG(monthly_data)
         profile.print_summary()
         profile.plot_year()
         profile.plot_week("2019-03-07")
