@@ -11,8 +11,10 @@
 # For full license text, see the LICENSE file in the project root.
 
 
+import ast
 import json
 import numpy as np
+import pandas as pd
 import PySAM.TroughPhysicalIph as tpiph
 import PySAM.LcoefcrDesign as lcoe
 import PySAM.Utilityrate5 as utility
@@ -23,7 +25,8 @@ from importlib.resources import files
 
 
 class ConfigSelection:
-    def __init__(self, config, selected_outputs, design_variables, use_default = True, user_weather_file=None):
+    def __init__(self, config, selected_outputs, design_variables, use_default = True, user_weather_file=None,
+                 collector_name="Power Trough 250", custom_collector_data=None):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -44,6 +47,9 @@ class ConfigSelection:
         """
         self.selected_outputs = selected_outputs
         self.design_variables = design_variables
+
+        self.collector_name = collector_name
+        self.collector_data = self._load_collector_data(custom_collector_data)
 
         # the user does not need to know how SAM outputs are called internally
         self.output_name_map = {
@@ -136,6 +142,9 @@ class ConfigSelection:
                     print(f"[INFO] Using weather file from template: {file_name}")
         except Exception as e:
             print(f"[ERROR] Failed to assign weather file: {e}")
+
+        # Asignar valores de colector a los campos relevantes del modelo
+        self._set_collector_inputs()
     
     def get_default_weather_path(self):
         """
@@ -146,6 +155,38 @@ class ConfigSelection:
             return str(weather_file)
         except Exception as e:
             raise FileNotFoundError(f"[ERROR] Default weather file not found: {e}")
+        
+    def _load_collector_data(self, custom_data):
+        if custom_data is not None:
+            return custom_data
+        else:
+            csv_path = files("sammoo.resources.collector_data") / "iph_collectors_parameters.csv"
+            df = pd.read_csv(csv_path)
+            row = df[df["name"] == self.collector_name]
+            if row.empty:
+                raise ValueError(f"Collector '{self.collector_name}' not found in database.")
+            return row.iloc[0].to_dict()
+
+    def _set_collector_inputs(self):
+        for key, value in self.collector_data.items():
+            if pd.isna(value) or value == "":
+                continue
+
+            try:
+                if key == "IAM_matrix":
+                    # Convertir string a lista
+                    if isinstance(value, str):
+                        coeffs = ast.literal_eval(value)
+                    else:
+                        coeffs = value
+                    # Replicar la fila 4 veces (una por SCA)
+                    iam_matrix = [coeffs] * 4
+                    self.solar_field_group_object.IAM_matrix = iam_matrix
+                else:
+                    self.solar_field_group_object.value(key, value)
+            except Exception as e:
+                print(f"[WARN] Could not assign '{key}': {e}")
+
     
     def get_input(self, key):
         for module in self.modules:

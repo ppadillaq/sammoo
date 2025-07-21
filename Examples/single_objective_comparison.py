@@ -51,7 +51,12 @@ for obj_name, description in objectives:
     print(f"\n========== Optimizing objective: {description} ==========")
 
     # Crear configuración y optimizador
-    config = ConfigSelection("Commercial owner", [obj_name], designVariables)
+    config = ConfigSelection(
+        config="Commercial owner",
+        selected_outputs=[obj_name],
+        design_variables=designVariables,
+        collector_name="Power Trough 250"
+        )
     moop = ParMOOSim(config)
 
     # Ejecutar optimización (ajusta sim_max según coste del modelo)
