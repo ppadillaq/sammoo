@@ -58,11 +58,12 @@ class ConfigSelection:
             "Payback": "payback",
             "-Capacity Factor": "capacity_factor",
             "-Savings": "savings_year1",
-            "CF": "capacity_factor",
+            "-CF": "capacity_factor",
             "utility_bill_wo_sys_year1": "utility_bill_wo_sys_year1",
             "utility_bill_w_sys_year1": "utility_bill_w_sys_year1",
             "annual_energy": "annual_energy",
             "-LCS": "cf_discounted_savings",
+            "total_installed_cost": "total_installed_cost",
             # Add more if needed
         }
         #LCOE = finance_model.Outputs.lcoe_fcr

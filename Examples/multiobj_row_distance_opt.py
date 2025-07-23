@@ -27,21 +27,22 @@ Three objective functions are considered:
 The goal is to identify the optimal row spacing that balances cost, performance, and return metrics.
 """
 
-import sys
-sys.path.append(".")
 
 from sammoo import ConfigSelection, ParMOOSim
 
 # Define the design variable to optimize
-designVariables = {
-    "Row_Distance": ([5.0, 15.0], "continuous")  # Row spacing in meters
+design_variables = {
+    "Row_Distance": ([5.0, 30.0], "continuous")  # Row spacing in meters
 }
 
 # Define the objective functions
-objectiveFunctions = ["LCOE", "Payback", "-LCS"]
+#objectiveFunctions = ["LCOE", "Payback", "-LCS"]
+objectiveFunctions = ["total_installed_cost", "-CF"]
 
 # Create the simulation configuration
-config = ConfigSelection("Commercial owner", objectiveFunctions, designVariables)
+config = ConfigSelection(config="Commercial owner",
+                         selected_outputs=objectiveFunctions,
+                         design_variables=design_variables)
 
 # Set plant design point (fixed thermal capacity scenario)
 config.set_inputs({
@@ -51,7 +52,7 @@ config.set_inputs({
 })
 
 # Instantiate the optimizer
-my_moop = ParMOOSim(config)
+my_moop = ParMOOSim(config, search_budget=30)
 
 # Run the multi-objective optimization (can increase sim_max for broader exploration)
 my_moop.solve_all(sim_max=1)
@@ -72,7 +73,7 @@ print("\nExtended information for each Pareto-optimal solution:")
 
 for i, row in results.iterrows():
     print(f"\n--- Solution {i+1} ---")
-    x_input = {var: row[var] for var in designVariables.keys()}
+    x_input = {var: row[var] for var in design_variables.keys()}
     config.set_inputs(x_input)
     extended_outputs = config.sim_func(x_input)
     
