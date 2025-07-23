@@ -6,6 +6,10 @@
 
 Optimization of Solar Industrial Process Heat (SIPH) systems using Concentrated Solar Power (CSP) technologies through the NREL [PySAM](https://nrel-pysam.readthedocs.io/en/latest/) package (System Advisor Model). This project was developed in the context of my Master's Thesis in Research in Industrial Technologies at the Universidad Nacional de Educación a Distancia (UNED), Spain.
 
+<p align="center">
+  <img src="assets/sammoo-logo.png" alt="sammoo logo" width="300"/>
+</p>
+
 
 ---
 
