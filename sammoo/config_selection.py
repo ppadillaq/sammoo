@@ -25,8 +25,23 @@ from importlib.resources import files
 
 
 class ConfigSelection:
-    def __init__(self, config, selected_outputs, design_variables, use_default = True, user_weather_file=None,
-                 collector_name="Power Trough 250", custom_collector_data=None):
+    HTF_CODES = {
+        "Nitrate Salt": 18,
+        "Caloria HT-43": 19,
+        "Hitec XL": 20,
+        "Therminol VP-1": 21,
+        "Hitec": 22,
+        "Dowtherm Q": 23,
+        "Dowtherm RP": 24,
+        "Therminol 66": 29,
+        "Therminol 59": 30,
+        "Pressurized Water": 31,
+        "User Defined": 50
+    }
+
+    def __init__(self, config, selected_outputs, design_variables, use_default = True,
+                 user_weather_file=None, collector_name="Power Trough 250", 
+                 custom_collector_data=None, htf_name="Pressurized Water"):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -146,6 +161,15 @@ class ConfigSelection:
 
         # Asignar valores de colector a los campos relevantes del modelo
         self._set_collector_inputs()
+
+        # Set working fluid (HTF)
+        htf_code = self.HTF_CODES.get(htf_name)
+        if htf_code is not None:
+            self.set_input("Fluid", htf_code)
+            print(f"[INFO] Fluid set to '{htf_name}' (code {htf_code})")
+        else:
+            print(f"[WARN] Unknown HTF name: '{htf_name}'. Available options: {list(self.HTF_CODES.keys())}")
+
     
     def get_default_weather_path(self):
         """
