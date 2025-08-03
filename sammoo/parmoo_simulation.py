@@ -115,9 +115,7 @@ class ParMOOSim:
         for idx, name in enumerate(self.objective_names):
             # Detect if it is a maximization problem
             is_max = name.startswith("-")
-            sign = 1
-            if is_max:
-                sign = -1
+            sign = -1 if is_max else 1
 
             # Define objective function based on index and sign
             def make_obj_func(index, sign=1):
