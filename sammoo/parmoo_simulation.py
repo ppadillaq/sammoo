@@ -19,7 +19,7 @@ from parmoo.acquisitions import RandomConstraint
 from parmoo.viz import scatter
 
 class ParMOOSim:
-    def __init__(self, config, search_budget=10, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3):
+    def __init__(self, config, search_budget=10, switch_after=5, batch_size=5, auto_switch=False, epsilon=1e-3, initial_acq=3):
         """
         Initializes a ParMOOSim optimization object.
 
@@ -41,6 +41,8 @@ class ParMOOSim:
                 Whether to switch automatically from sequential to batch.
             epsilon: float
                 Threshold to detect convergence (used to trigger auto-switch to batch if improvement < epsilon).
+            initial_acq: int
+                Number of initial acquisitions added before the first optimization step (default: 3).
         """
         # 🔒 Check early if weather file is missing
         weather_file = config.get_input("file_name")
@@ -88,15 +90,15 @@ class ParMOOSim:
         self.batch_size = batch_size
         self.switched_to_batch = False
         self.auto_switch = auto_switch
-        self.prev_objectives = []  # guardará las medias de los objetivos previos
+        self.prev_objectives = []  # list of scalar mean values from previous Pareto front evaluations (for convergence tracking)
 
         self.epsilon = epsilon
 
         #def c1(x, s): return 0.1 - x["x1"]
         #my_moop.addConstraint({'name': "c1", 'constraint': c1})
 
-        # By default, add 3 acquisitions initially
-        self.initial_acquisitions(3)
+        # Add initial acquisitions before starting the optimization loop
+        self.initial_acquisitions(initial_acq)
 
     def _add_objectives(self):
         """
