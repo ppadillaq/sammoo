@@ -23,11 +23,14 @@ class ParMOOSim:
         """
         Initializes a ParMOOSim optimization object.
 
+        This class supports both sequential and batch optimization modes, with the option
+        to automatically switch between them based on convergence criteria. This provides
+        flexibility for different optimization workflows, from exploratory single-step runs
+        to efficient batch acquisitions once the solution space stabilizes.
+
         Parameters:
             config: ConfigSelection
                 ConfigSelection object.
-            objective_names: list
-                List of objective functions names.
             search_budget: int
                 Initial sampling budget.
             switch_after: int
@@ -46,7 +49,7 @@ class ParMOOSim:
                 "[ERROR] Weather file not defined in configuration. Please assign a valid path to 'file_name'."
             )
         
-        # Fix the random seed for reproducibility using the np_random_gen hyperparams
+        # Set a fixed seed (0) to ensure reproducibility of all random operations (e.g., sampling, perturbations)
         self.my_moop = MOOP(GlobalSurrogate_PS, hyperparams={'np_random_gen': 0})
 
         # Save configuration
@@ -96,12 +99,27 @@ class ParMOOSim:
         self.initial_acquisitions(3)
 
     def _add_objectives(self):
+        """
+        Adds objective functions to the MOOP based on the user's selection.
+
+        Objective names are expected to come from `config.selected_outputs`, where
+        a leading minus sign ('-') indicates that the objective should be maximized.
+
+        For example:
+            - "LCOE"         → minimize LCOE
+            - "-net_energy"  → maximize net_energy
+
+        Internally, each objective is registered with ParMOO by wrapping the 
+        appropriate index from the SAM simulation result and applying a sign (+1 or -1).
+        """
         for idx, name in enumerate(self.objective_names):
             # Detect if it is a maximization problem
             is_max = name.startswith("-")
             sign = 1
             if is_max:
                 sign = -1
+
+            # Define objective function based on index and sign
             def make_obj_func(index, sign=1):
                 def obj_func(x, s):
                     return sign * s["SAMOptim"][index]
@@ -122,7 +140,20 @@ class ParMOOSim:
         print(f"Added acquisition with {acquisition_method.__name__}")
 
     def optimize_step(self, plot_output=None):
-        """Execute a single optimization step (one acquisition)."""
+        """
+        Executes a single sequential optimization step using one acquisition.
+
+        This method performs one iteration of optimization, evaluates the updated 
+        Pareto front, and tracks progress based on the mean objective value. If 
+        auto-switching is enabled, it monitors convergence by comparing the change 
+        in average objective values and switches to batch mode if improvement falls 
+        below a predefined threshold (`epsilon`).
+
+        Parameters:
+            plot_output: str or None (default: None)
+                If provided, the Pareto front will be plotted or saved using the
+                specified format (e.g., "png", "svg", etc.).
+        """
         if self.switched_to_batch:
             print("[WARN] Already in batch mode. Use solve_all() instead of optimize_step().")
             return
@@ -132,20 +163,20 @@ class ParMOOSim:
         self.my_moop.optimize()
         print("Executed one optimization step.")
 
-        # Obtener resultados actuales
+        # Get current Pareto front results
         results = self.my_moop.getPF(format="pandas")
-        mean_obj = results.mean().values  # vector de medias por objetivo
-        mean_obj_scalar = mean_obj.mean()  # valor medio general
+        mean_obj = results.mean().values  # vector of mean values for each objective
+        mean_obj_scalar = mean_obj.mean() # scalar average of all objectives
 
-        # Guardar historial
+        # Store in history
         self.prev_objectives.append(mean_obj_scalar)
 
-        # Comparar mejora si hay al menos dos pasos
+        # Compare improvement if at least two steps have been executed
         if len(self.prev_objectives) >= 2:
             delta = abs(self.prev_objectives[-1] - self.prev_objectives[-2])
             print(f"Delta mean objective: {delta}")
 
-            # Si mejora es menor que threshold → activar batch
+            # If improvement is below threshold → switch to batch mode
             if self.auto_switch and not self.switched_to_batch and delta < self.epsilon:
                 self.switched_to_batch = True
                 print(f"\n[INFO] Auto-switching to batch mode: improvement delta {delta:.4f} < {self.epsilon}")
