@@ -41,7 +41,8 @@ class ConfigSelection:
 
     def __init__(self, config, selected_outputs, design_variables, use_default = True,
                  user_weather_file=None, collector_name="Power Trough 250", 
-                 custom_collector_data=None, htf_name="Pressurized Water"):
+                 custom_collector_data=None, htf_name="Pressurized Water",
+                 verbose=1):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -56,10 +57,14 @@ class ConfigSelection:
                 If True, loads PySAM modules with default technology configuration. Defaults to True.
             user_weather_file (str, optional): 
                 Path to a user-provided weather CSV file. If None, a default internal file is used.
-    
+            verbose (int, optional): 
+                Verbosity level for PySAM execution. 0 = silent, 1 = basic (default), 2+ = detailed.
+
         Raises:
             ValueError: If required SAM templates or weather file are missing.
         """
+        self.verbose = verbose  # Default verbosity for simulation execution
+        
         self.selected_outputs = selected_outputs
         self.design_variables = design_variables
 
@@ -299,6 +304,29 @@ class ConfigSelection:
         return self.modules
     
     def sim_func(self, x):
+        """
+        Executes a SAM simulation using the current configuration and input vector.
+
+        This method assigns values from the input dictionary `x` to the appropriate
+        group objects within the PySAM system model, then runs the simulation and
+        extracts the specified outputs defined in `selected_outputs`.
+
+        It is designed to be compatible with surrogate-based optimizers like ParMOO,
+        which call this function with a design vector for each acquisition.
+
+        Parameters:
+            x (dict): Dictionary mapping design variable names to their numeric values.
+                    These should match the keys in `design_variables`.
+
+        Returns:
+            np.ndarray: Array of output values in the same order as `selected_outputs`.
+
+        Notes:
+            - Variables in `x` must be included in `variable_to_group`, otherwise they
+            will be ignored with a warning.
+            - If simulation fails, the function returns a vector of NaNs.
+            - Uses `self.verbose` to control PySAM verbosity.
+        """
         try:
             for var_name in x:
                 group_object = self.variable_to_group.get(var_name)
@@ -308,7 +336,7 @@ class ConfigSelection:
                     print(f"Warning: Variable '{var_name}' not mapped to any group object")
 
             for m in self.modules:
-                m.execute(1)
+                m.execute(self.verbose)
 
             # collect and return outputs after execution
             return self._collect_outputs()
