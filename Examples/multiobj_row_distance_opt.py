@@ -42,7 +42,8 @@ objectiveFunctions = ["total_installed_cost", "-CF"]
 # Create the simulation configuration
 config = ConfigSelection(config="Commercial owner",
                          selected_outputs=objectiveFunctions,
-                         design_variables=design_variables)
+                         design_variables=design_variables,
+                         verbose=0)
 
 # Set plant design point (fixed thermal capacity scenario)
 config.set_inputs({
@@ -52,10 +53,10 @@ config.set_inputs({
 })
 
 # Instantiate the optimizer
-my_moop = ParMOOSim(config, search_budget=30)
+my_moop = ParMOOSim(config, search_budget=5)
 
 # Run the multi-objective optimization (can increase sim_max for broader exploration)
-my_moop.solve_all(sim_max=1)
+my_moop.solve_all(sim_max=10)
 
 # Retrieve and print the optimization results
 results = my_moop.get_results()
