@@ -46,7 +46,7 @@ class ThermalLoadProfileLPG:
             active_hours = mask.sum()
             if active_hours > 0:
                 #kg = tonnes * 1000
-                kg = tonnes * 10
+                kg = tonnes
                 total_energy_kJ = kg * self.pci_kj_per_kg
                 hourly_energy = total_energy_kJ / active_hours
                 df.loc[mask, 'energy_kJ'] = hourly_energy
