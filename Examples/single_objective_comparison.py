@@ -55,12 +55,13 @@ for obj_name, description in objectives:
         config="Commercial owner",
         selected_outputs=[obj_name],
         design_variables=designVariables,
-        collector_name="Power Trough 250"
+        collector_name="Power Trough 250",
+        verbose=0
         )
-    moop = ParMOOSim(config)
+    moop = ParMOOSim(config, search_budget=30)
 
     # Ejecutar optimización (ajusta sim_max según coste del modelo)
-    moop.solve_all(sim_max=1)
+    moop.solve_all(sim_max=30)
 
     # Obtener resultados (el mejor diseño)
     results = moop.get_results()
