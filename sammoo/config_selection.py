@@ -283,6 +283,19 @@ class ConfigSelection:
                 print(f"Warning: Output '{internal_key}' not found in any module.")
         return np.array(outputs)
     
+    def _estimate_installed_cost(self, aperture_area, storage_capacity_mwh, heat_sink_power_mwt):
+        cost_per_m2_solar = 100.0        # $/m²
+        cost_per_kwh_storage = 62.0      # $/kWh
+        cost_per_kwt_sink = 10.0         # $/kWt
+
+        storage_cost = storage_capacity_mwh * 1000 * cost_per_kwh_storage
+        solar_field_cost = aperture_area * cost_per_m2_solar
+        heat_sink_cost = heat_sink_power_mwt * 1000 * cost_per_kwt_sink
+
+        total_cost = solar_field_cost + storage_cost + heat_sink_cost
+        return total_cost
+
+    
     def set_debug_outputs(self, additional_outputs):
         """
         Appends extra outputs to the current list of selected outputs.
