@@ -25,14 +25,14 @@ from sammoo import ConfigSelection, ParMOOSim
 # -----------------------------
 # Define design space
 # -----------------------------
-designVariables = {"tshours": ([0,20],"integer"),                          # Thermal storage hours
+design_variables = {"tshours": ([0,20],"integer"),                          # Thermal storage hours
                    "specified_solar_multiple": ([0.7,4.0],"continuous"),   # Solar multiple (SM)
-                   "T_loop_out":([200,400],"integer")}                     # Loop outlet temperature [°C]
+                   "T_loop_out":([200,250],"integer")}                     # Loop outlet temperature [°C]
 
 # -----------------------------
 # Define objective functions
 # -----------------------------
-objFunctions = ["LCOE", "Payback","-LCS"] # Minimize LCOE, Payback; Maximize Life Cycle Savings
+obj_functions = ["LCOE", "Payback","-LCS"] # Minimize LCOE, Payback; Maximize Life Cycle Savings
 
 
 # -----------------------------
@@ -40,16 +40,17 @@ objFunctions = ["LCOE", "Payback","-LCS"] # Minimize LCOE, Payback; Maximize Lif
 # -----------------------------
 config = ConfigSelection(
     config="Commercial owner",
-    selected_outputs=objFunctions,
-    design_variables=designVariables,
-    collector_name="Power Trough 250"  # Default collector
+    selected_outputs=obj_functions,
+    design_variables=design_variables,
+    collector_name="Power Trough 250",  # Default collector
+    verbose=0
 )
 
 # -----------------------------
 # Initialize and solve optimization problem
 # -----------------------------
 my_moop = ParMOOSim(config, search_budget=50)
-my_moop.solve_all(sim_max=1) # sim_max=1 for faster evaluation; increase for better convergence
+my_moop.solve_all(sim_max=10) # sim_max=1 for faster evaluation; increase for better convergence
 
 # -----------------------------
 # Output results
