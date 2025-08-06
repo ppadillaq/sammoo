@@ -15,16 +15,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class ThermalLoadProfileLPG:
-    def __init__(self, monthly_tonnes, pci_kj_per_kg=46000, year=2019):
+    def __init__(self, monthly_kg, pci_kj_per_kg=46000, year=2019):
         """
         Initialize the ThermalLoadProfileLPG object.
         
         Parameters:
-            monthly_tonnes (dict): Dictionary with month names (1-12) as keys and tonnes as values.
+            monthly_kg (dict): Dictionary with month names (1-12) as keys and LPG mass in kg as values.
             pci_kj_per_kg (float): Lower heating value of LPG in kJ/kg (default 46,000 kJ/kg).
             year (int): Non-leap year for the time series.
         """
-        self.monthly_tonnes = monthly_tonnes
+        self.monthly_kg = monthly_kg
         self.pci_kj_per_kg = pci_kj_per_kg
         self.year = year
         self.hourly_series = self._generate_hourly_series()
@@ -41,12 +41,10 @@ class ThermalLoadProfileLPG:
         # Initialize energy series
         df['energy_kJ'] = 0.0
         
-        for month, tonnes in self.monthly_tonnes.items():
+        for month, kg in self.monthly_kg.items():
             mask = (df.index.month == month) & df['active']
             active_hours = mask.sum()
             if active_hours > 0:
-                #kg = tonnes * 1000
-                kg = tonnes
                 total_energy_kJ = kg * self.pci_kj_per_kg
                 hourly_energy = total_energy_kJ / active_hours
                 df.loc[mask, 'energy_kJ'] = hourly_energy
@@ -101,7 +99,7 @@ class ThermalLoadProfileLPG:
     def print_summary(self):
         """Print total input and calculated totals by month for verification."""
         print("\n=== LPG Consumption Summary ===")
-        input_totals = {month: tonnes * 1000 * self.pci_kj_per_kg for month, tonnes in self.monthly_tonnes.items()}
+        input_totals = {month: kg * self.pci_kj_per_kg for month, kg in self.monthly_kg.items()}
         df = self.hourly_series.to_frame(name='energy_kJ')
         df['month'] = df.index.month
         calculated_totals = df.groupby('month')['energy_kJ'].sum()
