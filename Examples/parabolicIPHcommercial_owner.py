@@ -38,9 +38,6 @@ monthly_data = {
 # -----------------------------
 profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
-timestep_load_abs = profile.get_hourly_kw_profile()
-q_pb_design = profile.get_average_power_mw()  # in MW
-
 # -----------------------------
 # Define design space
 # -----------------------------
@@ -55,7 +52,7 @@ obj_functions = ["LCOE", "Payback","-LCS"] # Minimize LCOE, Payback; Maximize Li
 
 
 # -----------------------------
-# Create configuration and optimizer
+# Create configuration and apply thermal demand
 # -----------------------------
 config = ConfigSelection(
     config="Commercial owner",
@@ -65,12 +62,8 @@ config = ConfigSelection(
     verbose=0
 )
 
-# -----------------------------
-# Manually set input parameters for demand profile
-# -----------------------------
-config.set_input("timestep_load_abs", timestep_load_abs)
-config.set_input("q_pb_design", q_pb_design)
-config.set_input("system_capacity", q_pb_design * 1000)     # kWt
+# Apply demand profile → sets timestep_load_abs, q_pb_design and system_capacity
+profile.apply_to_config(config)
 
 # -----------------------------
 # Initialize and solve optimization problem
