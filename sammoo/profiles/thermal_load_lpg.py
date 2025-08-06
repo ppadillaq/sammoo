@@ -52,17 +52,29 @@ class ThermalLoadProfileLPG:
         return df['energy_kJ']
 
     def plot_year(self):
-        """Plot the yearly consumption profile."""
+        """Plot the yearly consumption profile (in kW or MW depending on peak value)."""
+        power_series = self.hourly_series / 3600  # convert from kJ/h to kW
+        peak_kw = power_series.max()
+
+        if peak_kw > 1000:
+            unit = "MW"
+            values = power_series / 1000
+        else:
+            unit = "kW"
+            values = power_series
+
+
         plt.figure(figsize=(15, 4))
-        self.hourly_series.plot()
+        values.plot() # convert kJ/h to kW
         plt.xlabel("Date")
-        plt.ylabel("Energy consumption (kJ/h)")
-        plt.title("Hourly LPG Energy Consumption Profile")
+        plt.ylabel(f"Power ({unit})")
+        plt.title(f"Hourly LPG Energy Consumption Profile ({unit})")
         plt.show()
 
     def plot_week(self, start_date=None):
         """
         Plots a weekly profile starting from the nearest Monday before the given date.
+        Automatically scales to kW or MW depending on peak.
         
         Parameters:
             start_date (str or None): Any date string (YYYY-MM-DD). If None, defaults to first Monday of year.
@@ -78,13 +90,21 @@ class ThermalLoadProfileLPG:
         
         end = start + pd.Timedelta(days=7)
 
-        week_data = self.hourly_series.loc[(self.hourly_series.index >= start) & (self.hourly_series.index < end)]
+        week_data = self.hourly_series.loc[(self.hourly_series.index >= start) & (self.hourly_series.index < end)] / 3600 # convert to kW
+
+        peak_kw = week_data.max()
+        if peak_kw > 1000:
+            unit = "MW"
+            values = week_data / 1000
+        else:
+            unit = "kW"
+            values = week_data
 
         plt.figure(figsize=(15, 4))
-        plt.plot(week_data.index, week_data.values, marker='o')
-        plt.title(f"Weekly thermal load profile from {start.date()} to {end.date()}")
+        plt.plot(values.index, values.values, marker='o')
+        plt.title(f"Weekly thermal load profile from {start.date()} to {end.date()} ({unit})")
         plt.xlabel("Datetime")
-        plt.ylabel("Thermal load (kJ/h)")
+        plt.ylabel("Thermal load ({unit})")
         plt.grid(True)
         plt.show()
 
