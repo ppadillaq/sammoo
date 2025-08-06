@@ -98,6 +98,7 @@ class ConfigSelection:
         self.solar_field_group_object = getattr(system_model,'SolarField')
         self.TES_group_object = getattr(system_model,'TES')
         self.Controller_group_object = getattr(system_model,'Controller')
+        self.system_design_group_object = getattr(system_model,'SystemDesign')
 
         self.variable_to_group = {
             "specified_solar_multiple": self.Controller_group_object,
@@ -124,6 +125,9 @@ class ConfigSelection:
                     utility_model = utility.from_existing(system_model)
                     thermalrate_model = tr.from_existing(system_model)
                     financial_model = cl.from_existing(system_model)
+
+                self.cashloan_module = financial_model
+
                 template_dir = files("sammoo.templates.iph_parabolic_commercial_owner")
                 file_names = [
                     "untitled_trough_physical_iph",
@@ -348,6 +352,29 @@ class ConfigSelection:
                 else:
                     print(f"Warning: Variable '{var_name}' not mapped to any group object")
 
+            # --- Estimate total_installed_cost dynamically ---
+            try:
+                sm = getattr(self.Controller_group_object, "specified_solar_multiple")
+                tshours = getattr(self.TES_group_object, "tshours")
+                q_pb_design = getattr(self.system_design_group_object, "q_pb_design") # Design heat input to power block [MWt]
+
+                # Approximate aperture area (m²) using crude 800 W/m² DNI conversion
+                aperture_area = sm * q_pb_design * 1e6 / 800
+
+                # Storage capacity in MWh
+                storage_capacity = tshours * q_pb_design
+
+                # Estimate installed cost
+                total_cost = self._estimate_installed_cost(aperture_area, storage_capacity, q_pb_design)
+                self.cashloan_module.value("total_installed_cost", total_cost)
+
+                if self.verbose >= 2:
+                    print(f"[DEBUG] Estimated installed cost: ${total_cost:,.2f}")
+
+            except Exception as e:
+                print(f"[WARN] Failed to estimate total_installed_cost: {e}")
+
+            # --- run all modules ---
             for m in self.modules:
                 m.execute(self.verbose)
 
