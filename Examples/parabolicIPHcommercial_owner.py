@@ -21,6 +21,25 @@ The system uses the default industrial collector: 'Power Trough 250'.
 """
 
 from sammoo import ConfigSelection, ParMOOSim
+from sammoo.profiles import ThermalLoadProfileLPG
+
+# -----------------------------
+# Monthly LPG consumption data (kg)
+# -----------------------------
+monthly_data = {
+    1: 11343,  2: 15133,  3: 4983,
+    4: 13221,  5: 7250,   6: 12137,
+    7: 8055,   8: 7542,   9: 7605,
+    10: 12899, 11: 6090,  12: 12343
+}
+
+# -----------------------------
+# Generate thermal load profile
+# -----------------------------
+profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
+
+timestep_load_abs = profile.get_hourly_kw_profile()
+q_pb_design = profile.get_average_power_mw()  # in MW
 
 # -----------------------------
 # Define design space
@@ -45,6 +64,12 @@ config = ConfigSelection(
     collector_name="Power Trough 250",  # Default collector
     verbose=0
 )
+
+# -----------------------------
+# Manually set input parameters for demand profile
+# -----------------------------
+config.set_input("timestep_load_abs", timestep_load_abs)
+config.set_input("q_pb_design", q_pb_design)
 
 # -----------------------------
 # Initialize and solve optimization problem
