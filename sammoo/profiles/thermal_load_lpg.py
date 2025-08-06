@@ -62,8 +62,23 @@ class ThermalLoadProfileLPG:
         average_power_kW = total_energy_kJ / 3600 / 8760  # divide by seconds per hour and hours per year
         average_power_MW = average_power_kW / 1000
         return average_power_MW
-
     
+    def get_hourly_kw_profile(self):
+        """
+        Return the hourly thermal load profile in kW (length 8760), suitable for 'timestep_load_abs' in SAM.
+
+        Raises:
+            ValueError: If the profile does not cover exactly 8760 hours.
+
+        Returns:
+            list: Hourly thermal demand profile in kW.
+        """
+        n_hours = len(self.hourly_series)
+        if n_hours != 8760:
+            raise ValueError(f"Expected 8760 hourly values, but got {n_hours}. Check if the year is non-leap and data is complete.")
+        
+        return (self.hourly_series / 3600).tolist()
+
     def plot_year(self):
         """Plot the yearly consumption profile (in kW or MW depending on peak value)."""
         power_series = self.hourly_series / 3600  # convert from kJ/h to kW
