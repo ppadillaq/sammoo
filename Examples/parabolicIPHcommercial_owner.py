@@ -59,6 +59,7 @@ config = ConfigSelection(
     selected_outputs=obj_functions,
     design_variables=design_variables,
     collector_name="Power Trough 250",  # Default collector
+    htf_name="Therminol VP-1",
     verbose=0
 )
 
