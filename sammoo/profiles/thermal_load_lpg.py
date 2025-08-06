@@ -31,7 +31,7 @@ class ThermalLoadProfileLPG:
 
     def _generate_hourly_series(self):
         """Generate the hourly time series based on input data and working schedule."""
-        dates = pd.date_range(start=f'{self.year}-01-01', end=f'{self.year}-12-31 23:00:00', freq='H')
+        dates = pd.date_range(start=f'{self.year}-01-01', end=f'{self.year}-12-31 23:00:00', freq='h')
         
         df = pd.DataFrame(index=dates)
         df['is_weekday'] = df.index.dayofweek < 5
@@ -95,7 +95,7 @@ class ThermalLoadProfileLPG:
 
         config.set_input("timestep_load_abs", profile_kw)
         config.set_input("q_pb_design", q_pb_design_mw)
-        config.set_input("system_capacity", q_pb_design_mw * 1000)
+        #config.set_input("system_capacity", q_pb_design_mw * 1000)
 
         print("[INFO] Thermal load profile and power values applied to SAM configuration.")
     
