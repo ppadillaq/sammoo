@@ -51,6 +51,19 @@ class ThermalLoadProfileLPG:
         
         return df['energy_kJ']
 
+    def get_average_power_mw(self):
+        """
+        Return the average power over the full year in MW, including non-active periods.
+
+        Returns:
+            float: Average power in MW over 8760 hours.
+        """
+        total_energy_kJ = self.hourly_series.sum()
+        average_power_kW = total_energy_kJ / 3600 / 8760  # divide by seconds per hour and hours per year
+        average_power_MW = average_power_kW / 1000
+        return average_power_MW
+
+    
     def plot_year(self):
         """Plot the yearly consumption profile (in kW or MW depending on peak value)."""
         power_series = self.hourly_series / 3600  # convert from kJ/h to kW
