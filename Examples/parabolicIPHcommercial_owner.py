@@ -70,12 +70,13 @@ config = ConfigSelection(
 # -----------------------------
 config.set_input("timestep_load_abs", timestep_load_abs)
 config.set_input("q_pb_design", q_pb_design)
+config.set_input("system_capacity", q_pb_design * 1000)     # kWt
 
 # -----------------------------
 # Initialize and solve optimization problem
 # -----------------------------
-my_moop = ParMOOSim(config, search_budget=10)
-my_moop.solve_all(sim_max=10) # sim_max=1 for faster evaluation; increase for better convergence
+my_moop = ParMOOSim(config, search_budget=50)
+my_moop.solve_all(sim_max=50) # sim_max=1 for faster evaluation; increase for better convergence
 
 # -----------------------------
 # Output results
