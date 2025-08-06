@@ -79,6 +79,26 @@ class ThermalLoadProfileLPG:
         
         return (self.hourly_series / 3600).tolist()
 
+    def apply_to_config(self, config):
+        """
+        Applies the thermal demand profile to a ConfigSelection object,
+        setting the following parameters:
+            - timestep_load_abs  [kW]
+            - q_pb_design        [MW]
+            - system_capacity    [kW]
+        
+        Parameters:
+            config (ConfigSelection): The SAM configuration object.
+        """
+        profile_kw = self.get_hourly_kw_profile()
+        q_pb_design_mw = self.get_average_power_mw()
+
+        config.set_input("timestep_load_abs", profile_kw)
+        config.set_input("q_pb_design", q_pb_design_mw)
+        config.set_input("system_capacity", q_pb_design_mw * 1000)
+
+        print("[INFO] Thermal load profile and power values applied to SAM configuration.")
+    
     def plot_year(self):
         """Plot the yearly consumption profile (in kW or MW depending on peak value)."""
         power_series = self.hourly_series / 3600  # convert from kJ/h to kW
