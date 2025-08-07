@@ -1,4 +1,4 @@
 name,A_aperture,W_aperture,L_SCA,ColperSCA,Ave_Focal_Length,Distance_SCA,TrackingError,Error,GeomEffects,Rho_mirror_clean,Dirt_mirror,IAM_matrix
-Absolicon T160,27.5,1.056,27.45,5,0.8,20,0.995,0.98,0.96,0.935,0.95,
-NEP PolyTrough 1800,18.45,1.965,11.085,1,0.9,20,0.99,0.97,0.96,0.935,0.95,
-Power Trough 250,12.96,2.16,6,1,1,20,0.99,0.965,0.96,0.935,0.95,"[1.0, 0.98, 0.95, 0.92]"
+Absolicon T160,27.5,1.056,27.45,5,0.8,1,0.995,0.98,0.96,0.935,0.95,
+NEP PolyTrough 1800,18.45,1.965,11.085,1,0.9,1,0.99,0.97,0.96,0.935,0.95,
+Power Trough 250,12.96,2.16,6,1,1,1,0.99,0.965,0.96,0.935,0.95,"[1.0, 0.98, 0.95, 0.92]"
