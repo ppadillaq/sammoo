@@ -152,7 +152,7 @@ class ThermalLoadProfileLPG:
         plt.plot(values.index, values.values, marker='o')
         plt.title(f"Weekly thermal load profile from {start.date()} to {end.date()} ({unit})")
         plt.xlabel("Datetime")
-        plt.ylabel("Thermal load ({unit})")
+        plt.ylabel(f"Thermal load ({unit})")
         plt.grid(True)
         plt.show()
 
