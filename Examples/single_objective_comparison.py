@@ -61,7 +61,7 @@ for obj_name, description in objectives:
     moop = ParMOOSim(config, search_budget=30)
 
     # Ejecutar optimización (ajusta sim_max según coste del modelo)
-    moop.solve_all(sim_max=30)
+    moop.solve_all(sim_max=30, plot=False)
 
     # Obtener resultados (el mejor diseño)
     results = moop.get_results()

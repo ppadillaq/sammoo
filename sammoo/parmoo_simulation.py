@@ -184,16 +184,26 @@ class ParMOOSim:
                     self.add_acquisition()
                 self.solve_all(plot_output=plot_output)
 
-    def solve_all(self, sim_max, plot_output=None):
+    def solve_all(self, sim_max, plot=True, plot_output=None):
         """
         Executes all pending acquisitions (batch optimization).
         Automatically called if auto_switch is enabled.
+
+        Parameters:
+            sim_max: int
+                Maximum number of simulations to perform.
+            plot: bool (default: True)
+                Whether to plot the Pareto front after optimization.
+            plot_output: str or None (default: None)
+                If provided, saves the plot to the given format ("png", "svg", etc.).
+                Ignored if plot=False.
         """
         print(f"Executing {self.batch_size if self.switched_to_batch else 'all pending'} acquisitions in batch...")
         self.my_moop.solve(sim_max=sim_max)
         print("Executed all pending acquisitions.")
 
-        self.plot_results(output=plot_output)
+        if plot:
+            self.plot_results(output=plot_output)
 
     def get_results(self, format="pandas"):
         """Retrieve Pareto front results."""
