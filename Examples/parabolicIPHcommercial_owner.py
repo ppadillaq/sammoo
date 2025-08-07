@@ -58,7 +58,7 @@ config = ConfigSelection(
     config="Commercial owner",
     selected_outputs=obj_functions,
     design_variables=design_variables,
-    collector_name="Power Trough 250",  # Default collector
+    collector_name="Absolicon T160",
     htf_name="Therminol VP-1",
     verbose=0
 )
@@ -69,7 +69,7 @@ profile.apply_to_config(config)
 # -----------------------------
 # Initialize and solve optimization problem
 # -----------------------------
-my_moop = ParMOOSim(config, search_budget=50)
+my_moop = ParMOOSim(config, search_budget=30)
 my_moop.solve_all(sim_max=50) # sim_max=1 for faster evaluation; increase for better convergence
 
 # -----------------------------
