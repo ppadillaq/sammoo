@@ -21,7 +21,7 @@ The system uses the default industrial collector: 'Power Trough 250'.
 """
 
 from sammoo import ConfigSelection, ParMOOSim
-from sammoo.profiles import ThermalLoadProfileLPG
+from sammoo.components import ThermalLoadProfileLPG
 
 # -----------------------------
 # Monthly LPG consumption data (kg)

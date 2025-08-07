@@ -1,6 +1,6 @@
 # examples/lpg_usage.py
 
-from sammoo.profiles.thermal_load_lpg import ThermalLoadProfileLPG
+from sammoo.components.thermal_load_lpg import ThermalLoadProfileLPG
 
 
 if __name__ == "__main__":
