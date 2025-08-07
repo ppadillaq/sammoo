@@ -219,14 +219,14 @@ class ConfigSelection:
             raise KeyError(f"[ERROR] Collector data must include '{e.args[0]}'")
         
         # Set L_SCA and ColperSCA as 4-element arrays
-        self.solar_field_group_object.value("L_SCA", [L_SCA_val] * 4)
-        self.solar_field_group_object.value("ColperSCA", [ColperSCA_val] * 4)
+        self.solar_field_group_object.L_SCA = [L_SCA_val] * 4
+        self.solar_field_group_object.ColperSCA = [ColperSCA_val] * 4
 
         # Compute and assign L_aperture
-        L_aperture = L_SCA_val / ColperSCA_val
-        self.solar_field_group_object.value("L_aperture", L_aperture)
+        L_aperture_val = L_SCA_val / ColperSCA_val
+        self.solar_field_group_object.L_aperture = [L_aperture_val] * 4
         if self.verbose >= 2:
-            print(f"[DEBUG] Computed L_aperture = {L_aperture:.3f} m")
+            print(f"[DEBUG] Computed L_aperture = {L_aperture_val:.3f} m")
 
         # Assign the rest of the parameters
         for key, value in self.collector_data.items():
