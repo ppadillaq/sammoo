@@ -21,18 +21,27 @@ techno-economic decision-making.
 Note: All optimizations use NREL PySAM via a custom simulation wrapper.
 """
 
-import sys
-sys.path.append(".")
-
-from sammoo import ConfigSelection, ParMOOSim
-
 import pandas as pd
+from sammoo import ConfigSelection, ParMOOSim
+from sammoo.components import ThermalLoadProfileLPG
+
+
+# Monthly LPG consumption data (kg)
+monthly_data = {
+    1: 11343,  2: 15133,  3: 4983,
+    4: 13221,  5: 7250,   6: 12137,
+    7: 8055,   8: 7542,   9: 7605,
+    10: 12899, 11: 6090,  12: 12343
+}
+
+# Generate thermal load profile
+profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
 # Diseño del sistema
 designVariables = {
     "tshours": ([0, 20], "integer"),
     "specified_solar_multiple": ([0.7, 4.0], "continuous"),
-    "T_loop_out": ([200, 400], "integer")
+    "T_loop_out": ([200, 250], "integer")
 }
 
 # Lista de funciones objetivo a estudiar por separado
@@ -50,7 +59,7 @@ summary_rows = []
 for obj_name, description in objectives:
     print(f"\n========== Optimizing objective: {description} ==========")
 
-    # Crear configuración y optimizador
+    # Crear configuración SAM
     config = ConfigSelection(
         config="Commercial owner",
         selected_outputs=[obj_name],
@@ -58,10 +67,15 @@ for obj_name, description in objectives:
         collector_name="Power Trough 250",
         verbose=0
         )
+    
+    # Apply demand profile → sets timestep_load_abs, q_pb_design and system_capacity
+    profile.apply_to_config(config)
+    
+    # Crear optimizador
     moop = ParMOOSim(config, search_budget=30)
 
     # Ejecutar optimización (ajusta sim_max según coste del modelo)
-    moop.solve_all(sim_max=30, plot=False)
+    moop.solve_all(sim_max=50, plot=False)
 
     # Obtener resultados (el mejor diseño)
     results = moop.get_results()
