@@ -202,21 +202,46 @@ class ConfigSelection:
             return row.iloc[0].to_dict()
 
     def _set_collector_inputs(self):
+        """
+        Assigns collector-specific parameters to the appropriate fields
+        in the PySAM SolarField group, using data loaded from the internal
+        collector database or a user-provided custom dataset.
+
+        Special handling is applied to:
+        - IAM_matrix: replicated across 4 SCA types.
+        - L_SCA and ColperSCA: replicated across 4 values if scalar.
+        - L_aperture: computed automatically as L_SCA / ColperSCA (single module length).
+        """
+        try:
+            L_SCA_val = float(self.collector_data["L_SCA"])
+            ColperSCA_val = int(self.collector_data["ColperSCA"])
+        except KeyError as e:
+            raise KeyError(f"[ERROR] Collector data must include '{e.args[0]}'")
+        
+        # Set L_SCA and ColperSCA as 4-element arrays
+        self.solar_field_group_object.value("L_SCA", [L_SCA_val] * 4)
+        self.solar_field_group_object.value("ColperSCA", [ColperSCA_val] * 4)
+
+        # Compute and assign L_aperture
+        L_aperture = L_SCA_val / ColperSCA_val
+        self.solar_field_group_object.value("L_aperture", L_aperture)
+        if self.verbose >= 2:
+            print(f"[DEBUG] Computed L_aperture = {L_aperture:.3f} m")
+
+        # Assign the rest of the parameters
         for key, value in self.collector_data.items():
-            if pd.isna(value) or value == "":
+            if pd.isna(value) or value == "" or key in {"L_SCA", "ColperSCA"}:
                 continue
 
             try:
                 if key == "IAM_matrix":
-                    # Convertir string a lista
-                    if isinstance(value, str):
-                        coeffs = ast.literal_eval(value)
-                    else:
-                        coeffs = value
-                    # Replicar la fila 4 veces (una por SCA)
+                    # Convert string representation to Python list if needed
+                    coeffs = ast.literal_eval(value) if isinstance(value, str) else value
+                    # Replicate the coefficient row 4 times (one per SCA type)
                     iam_matrix = [coeffs] * 4
                     self.solar_field_group_object.IAM_matrix = iam_matrix
                 else:
+                    # All other parameters are passed directly
                     self.solar_field_group_object.value(key, value)
             except Exception as e:
                 print(f"[WARN] Could not assign '{key}': {e}")
