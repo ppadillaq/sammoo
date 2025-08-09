@@ -168,20 +168,42 @@ class ThermalLoadProfileLPG:
         print(f"[INFO] Hourly profile exported to {filename}")
 
     def print_summary(self):
-        """Print total input and calculated totals by month for verification."""
-        print("\n=== LPG Consumption Summary ===")
-        input_totals = {month: kg * self.pci_kj_per_kg for month, kg in self.monthly_kg.items()}
-        df = self.hourly_series.to_frame(name='energy_kJ')
+        """Print monthly and total chemical vs. useful energy, including efficiency."""
+        print("\n=== LPG Consumption & Useful Heat Summary ===")
+        print(f"PCI (kJ/kg): {self.pci_kj_per_kg:.0f} | Efficiency: {self.efficiency:.2f}")
+
+        # Energía química de entrada por mes (a partir de los kg de GLP)
+        chem_input_kJ_by_month = {m: kg * self.pci_kj_per_kg for m, kg in self.monthly_kg.items()}
+
+        # Energía útil calculada por mes (ya incluye eficiencia en hourly_series)
+        df = self.hourly_series.to_frame(name='useful_energy_kJ')
         df['month'] = df.index.month
-        calculated_totals = df.groupby('month')['energy_kJ'].sum()
-        
-        print(f"{'Month':<10} {'Input Energy (GJ)':>20} {'Calc. Energy (GJ)':>20}")
+        useful_kJ_by_month = df.groupby('month')['useful_energy_kJ'].sum()
+
+        # Encabezado
+        header = f"{'Month':<7}{'Chem. Energy (GJ)':>20}{'Useful Energy (GJ)':>22}{'Eff. (useful/chem)':>22}"
+        print(header)
+
+        # Filas por mes (1..12)
+        total_chem_kJ = 0.0
+        total_useful_kJ = 0.0
         for month in range(1, 13):
-            input_gj = input_totals.get(month, 0) / 1e6
-            calc_gj = calculated_totals.get(month, 0) / 1e6
-            print(f"{month:<10} {input_gj:>20.3f} {calc_gj:>20.3f}")
-        
-        total_input = sum(input_totals.values()) / 1e6
-        total_calc = calculated_totals.sum() / 1e6
-        print(f"\n{'TOTAL':<10} {total_input:>20.3f} {total_calc:>20.3f}")
-        
+            chem_kJ = chem_input_kJ_by_month.get(month, 0.0)
+            useful_kJ = float(useful_kJ_by_month.get(month, 0.0))
+            total_chem_kJ += chem_kJ
+            total_useful_kJ += useful_kJ
+
+            chem_GJ = chem_kJ / 1e6
+            useful_GJ = useful_kJ / 1e6
+            eff = (useful_kJ / chem_kJ) if chem_kJ > 0 else 0.0
+            print(f"{month:<7}{chem_GJ:>20.3f}{useful_GJ:>22.3f}{eff:>22.3%}")
+
+        # Totales
+        tot_chem_GJ = total_chem_kJ / 1e6
+        tot_useful_GJ = total_useful_kJ / 1e6
+        tot_eff = (total_useful_kJ / total_chem_kJ) if total_chem_kJ > 0 else 0.0
+
+        print("-" * len(header))
+        print(f"{'TOTAL':<7}{tot_chem_GJ:>20.3f}{tot_useful_GJ:>22.3f}{tot_eff:>22.3%}")
+
+            
