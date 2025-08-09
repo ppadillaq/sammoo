@@ -60,7 +60,6 @@ config = ConfigSelection(
     design_variables=design_variables,
     collector_name="Absolicon T160",
     htf_name="Therminol VP-1",
-    user_weather_file="C:\\Users\\PedroQuesada\\_repos\\Seville_Spain_-hour.csv",
     verbose=0
 )
 

@@ -56,8 +56,22 @@ class ConfigSelection:
                 Dictionary of design variables, with bounds and types.
             use_default (bool, optional): 
                 If True, loads PySAM modules with default technology configuration. Defaults to True.
-            user_weather_file (str, optional): 
-                Path to a user-provided weather CSV file. If None, a default internal file is used.
+            user_weather_file : str, optional
+                Path to a user-provided weather CSV file. If None, a default internal file
+                is used. The file must be in a supported NSRDB or SAM-compatible format.
+                Example:
+                    r"C:\\Users\\username\\Documents\\weather_data\\seville_spain_hourly_2005.csv"
+                Forward slashes ("/") can also be used on all platforms:
+                    "C:/Users/username/Documents/weather_data/seville_spain_hourly_2005.csv"
+            collector_name : str, optional
+                Name of the solar collector to be loaded from the internal collector database.
+            custom_collector_data : dict, optional
+                Custom dictionary with collector parameters to override the database.
+            htf_name : str, optional
+                Heat Transfer Fluid name. Must match a key in HTF_CODES.
+            custom_I_bn_des : float, optional
+                If provided, sets the design-point DNI (I_bn_des) explicitly. If None,
+                it will be automatically computed from the assigned weather file.
             verbose (int, optional): 
                 Verbosity level for PySAM execution. 0 = silent, 1 = basic (default), 2+ = detailed.
 
