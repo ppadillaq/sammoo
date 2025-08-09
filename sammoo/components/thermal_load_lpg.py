@@ -15,14 +15,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class ThermalLoadProfileLPG:
-    def __init__(self, monthly_kg, pci_kj_per_kg=46000, efficiency=0.8, year=2019):
+    def __init__(self, monthly_kg, pci_kj_per_kg=46000, efficiency=0.89, year=2019):
         """
         Initialize the ThermalLoadProfileLPG object.
         
         Parameters:
             monthly_kg (dict): Dictionary with month names (1-12) as keys and LPG mass in kg as values.
             pci_kj_per_kg (float): Lower heating value of LPG in kJ/kg (default 46,000 kJ/kg).
-            efficiency (float): Thermal conversion efficiency from LPG to useful heat (0–1), default 0.8.
+            efficiency (float): Thermal conversion efficiency from LPG to useful heat (0–1), default 0.89.
             year (int): Non-leap year for the time series.
         """
         self.monthly_kg = monthly_kg
