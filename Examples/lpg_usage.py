@@ -23,5 +23,6 @@ if __name__ == "__main__":
         profile.print_summary()
         profile.plot_year()
         profile.plot_week("2019-03-07")
+        print("\nAverage power (MW): ")
         print(profile.get_average_power_mw())
         #profile.export_csv()
