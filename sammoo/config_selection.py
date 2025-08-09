@@ -213,9 +213,14 @@ class ConfigSelection:
     def get_default_weather_path(self):
         """
         Returns the path to the default weather file included in the package.
+
+        By default, this is the hourly dataset for Seville, Spain:
+        'seville_spain_37.377N_-5.926W_hourly.csv'
         """
         try:
-            weather_file = files("sammoo.resources.solar_resource").joinpath("tucson_az_32.116521_-110.933042_psmv3_60_tmy.csv")
+            weather_file = files("sammoo.resources.solar_resource").joinpath(
+                "seville_spain_37.377N_-5.926W_hourly.csv"
+            )
             return str(weather_file)
         except Exception as e:
             raise FileNotFoundError(f"[ERROR] Default weather file not found: {e}")
