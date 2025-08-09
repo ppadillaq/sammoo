@@ -21,6 +21,7 @@ import PySAM.Utilityrate5 as utility
 import PySAM.ThermalrateIph as tr
 import PySAM.CashloanHeat as cl
 
+from sammoo.components.weather_design_point import WeatherDesignPoint
 from importlib.resources import files
 
 
@@ -42,7 +43,7 @@ class ConfigSelection:
     def __init__(self, config, selected_outputs, design_variables, use_default = True,
                  user_weather_file=None, collector_name="Power Trough 250", 
                  custom_collector_data=None, htf_name="Pressurized Water",
-                 verbose=1):
+                 custom_I_bn_des=None, verbose=1):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -167,6 +168,21 @@ class ConfigSelection:
                     print(f"[INFO] Using weather file from template: {file_name}")
         except Exception as e:
             print(f"[ERROR] Failed to assign weather file: {e}")
+
+        try:
+            if custom_I_bn_des is not None:
+                # User explicitly sets I_bn_des
+                self.solar_field_group_object.I_bn_des = float(custom_I_bn_des)
+                if self.verbose >= 1:
+                    print(f"[INFO] I_bn_des set to user-defined value: {custom_I_bn_des} W/m²")
+            else:
+                # Always compute from weather file (default or user-provided)
+                WeatherDesignPoint(
+                    self.modules[0].value("file_name"),
+                    verbose=self.verbose
+                ).assign_to(self.solar_field_group_object, strategy="nearest_noon")
+        except Exception as e:
+            print(f"[WARN] Failed to set I_bn_des: {e}")
 
         # Asignar valores de colector a los campos relevantes del modelo
         self._set_collector_inputs()
