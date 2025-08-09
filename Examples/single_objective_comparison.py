@@ -64,7 +64,8 @@ for obj_name, description in objectives:
         config="Commercial owner",
         selected_outputs=[obj_name],
         design_variables=designVariables,
-        collector_name="Power Trough 250",
+        collector_name="Absolicon T160",
+        htf_name="Therminol VP-1",
         verbose=0
         )
     
