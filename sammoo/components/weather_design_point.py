@@ -91,27 +91,27 @@ class WeatherDesignPoint:
     @staticmethod
     def _read_metadata(csv_path):
         """
-        Read latitude, longitude, and time zone from the CSV header.
-        Fallback: extract lat/lon from filename if available.
+        Read latitude, longitude, and time zone from the first ~30 lines
+        (works with comma- or tab-delimited headers). Falls back to lat/lon in filename.
         """
+        import re
         lat = lon = tz = None
         try:
-            with open(csv_path, "r", encoding="utf-8") as f:
-                header = [next(f) for _ in range(20)]
-            for line in header:
-                if "Latitude" in line and "," in line:
-                    try: lat = float(line.split(",")[1].strip())
-                    except: pass
-                if "Longitude" in line and "," in line:
-                    try: lon = float(line.split(",")[1].strip())
-                    except: pass
-                if "Time Zone" in line and "," in line:
-                    try: tz = float(line.split(",")[1].strip())
-                    except: pass
+            with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+                header = [next(f) for _ in range(30)]
+            def grab(pattern):
+                for line in header:
+                    m = re.search(pattern, line, re.IGNORECASE)
+                    if m:
+                        return float(m.group(1))
+                return None
+            lat = grab(r"Latitude[^\d\-+]*([\-+]?\d+(?:\.\d+)?)")
+            lon = grab(r"Longitude[^\d\-+]*([\-+]?\d+(?:\.\d+)?)")
+            tz  = grab(r"Time\s*Zone[^\d\-+]*([\-+]?\d+(?:\.\d+)?)")
         except Exception:
             pass
         if (lat is None or lon is None):
-            m = re.search(r"([-+]?\d+\.\d+)_([-+]?\d+\.\d+)", csv_path)
+            m = re.search(r"([-+]?\d+\.\d+)[_,]([-+]?\d+\.\d+)", csv_path)
             if m:
                 lat = float(m.group(1)); lon = float(m.group(2))
         return lat, lon, tz
@@ -119,30 +119,107 @@ class WeatherDesignPoint:
     @staticmethod
     def _load_df(csv_path):
         """
-        Load the weather file into a DataFrame and detect the DNI column and timestamp column.
+        Load weather CSV supporting:
+        1) NSRDB/PSM3 with 'Year,Month,Day,Hour[,Minute]'
+        2) SAM/NSRDB classic with 'Date (MM/DD/YYYY), Time (HH:MM)' + units in headers
+
+        Returns
+        -------
+        df : pd.DataFrame
+        dt_col : str   # datetime column name
+        dni_col : str  # DNI column name in df
         """
-        df = pd.read_csv(csv_path, low_memory=False)
-        df.columns = [c.strip() for c in df.columns]
-        # Find DNI column
-        dni_col = next((c for c in ["DNI","dni","Dni","Direct Normal Irradiance","Direct Normal"]
-                        if c in df.columns), None)
-        if dni_col is None:
-            raise ValueError("No DNI column found in the weather file.")
-        # Build datetime column
-        dt_col = None
-        if all(c in df.columns for c in ["Year","Month","Day","Hour"]):
-            dt = pd.to_datetime(df[["Year","Month","Day","Hour"]].rename(columns={"Hour":"hour"}))
-            df.insert(0, "__dt__", dt)
-            dt_col = "__dt__"
-        else:
-            for c in ["Datetime","Time","DateTime","timestamp"]:
-                if c in df.columns:
-                    df[c] = pd.to_datetime(df[c])
-                    dt_col = c
+        import re
+        import pandas as pd
+
+        # ---- 1) Detect header row ----
+        header_idx = None
+        with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+            for i, line in enumerate(f):
+                s = line.strip().lower()
+                if s.startswith("year") or s.startswith("date"):
+                    header_idx = i
                     break
-        if dt_col is None:
-            raise ValueError("Could not construct timestamp (missing Year/Month/Day/Hour or datetime column).")
-        return df, dt_col, dni_col
+        if header_idx is None:
+            raise ValueError("Could not find header row starting with 'Year' or 'Date'.")
+
+        # ---- 2) Read with auto-delimiter (comma or tab) ----
+        df = pd.read_csv(csv_path, sep=None, engine="python", header=header_idx)
+        orig_cols = list(df.columns)
+
+        # Normalize names: drop units in parentheses, keep alphanumerics/space/_/-
+        def normalize(name: str) -> str:
+            base = re.sub(r"\(.*?\)", "", str(name))
+            base = re.sub(r"[^A-Za-z0-9 _\-]", "", base)
+            return base.strip().lower()
+
+        norm_map = {c: normalize(c) for c in orig_cols}
+        df.rename(columns=norm_map, inplace=True)
+
+        # ---- 3) Find DNI column (be tolerant) ----
+        dni_col = None
+        for c in df.columns:
+            cl = str(c).strip().lower()
+            if cl == "dni" or cl.startswith("dni "):
+                dni_col = c
+                break
+            if cl in ("direct normal irradiance", "direct normal"):
+                dni_col = c
+                break
+        if dni_col is None:
+            # Fallback: search original headers containing 'dni'
+            for oc in orig_cols:
+                if "dni" in str(oc).lower():
+                    dni_col = norm_map[oc]
+                    break
+        if dni_col is None:
+            raise ValueError("No DNI column found (tried 'DNI', 'Direct Normal Irradiance').")
+
+        # ---- 4) Build datetime ----
+        dt_col = "__dt__"
+
+        # Case A: year/month/day/hour(/minute)
+        if all(k in df.columns for k in ("year", "month", "day", "hour")):
+            data = {
+                "year":  df["year"].astype(int, errors="ignore"),
+                "month": df["month"].astype(int, errors="ignore"),
+                "day":   df["day"].astype(int, errors="ignore"),
+                "hour":  df["hour"].astype(int, errors="ignore"),
+            }
+            if "minute" in df.columns:
+                data["minute"] = df["minute"].astype(int, errors="ignore")
+            else:
+                data["minute"] = 0
+            dt = pd.to_datetime(data, errors="coerce")
+            if dt.isna().all():
+                raise ValueError("Failed to assemble datetime from year/month/day/hour(/minute).")
+            df.insert(0, dt_col, dt)
+            return df, dt_col, dni_col
+
+        # Case B: date/time columns (with units in original names)
+        date_col = next((c for c in df.columns if c.startswith("date")), None)
+        time_col = next((c for c in df.columns if c.startswith("time")), None)
+        if date_col and time_col:
+            # Try explicit format first; fall back to pandas parser
+            dt = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str),
+                                format="%m/%d/%Y %H:%M", errors="coerce")
+            if dt.isna().any():
+                dt = pd.to_datetime(df[date_col].astype(str) + " " + df[time_col].astype(str),
+                                    errors="coerce")
+            if dt.isna().all():
+                raise ValueError("Failed to parse Date/Time columns into timestamps.")
+            df.insert(0, dt_col, dt)
+            return df, dt_col, dni_col
+
+        # Case C: any existing datetime-like column
+        for c in ("datetime", "time", "timestamp", "date"):
+            if c in df.columns:
+                df[c] = pd.to_datetime(df[c], errors="coerce")
+                if df[c].notna().any():
+                    return df, c, dni_col
+
+        raise ValueError("Cannot construct timestamp: missing (Year/Month/Day/Hour) or (Date/Time).")
+
 
     @staticmethod
     def _equation_of_time_minutes(doy):
