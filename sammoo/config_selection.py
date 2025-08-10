@@ -234,7 +234,7 @@ class ConfigSelection:
             row = df[df["name"] == self.collector_name]
             if row.empty:
                 raise ValueError(f"Collector '{self.collector_name}' not found in database.")
-            return row.iloc[0].to_dict()
+            return row.iloc[0].drop(labels=["name"]).to_dict()
 
     def _set_collector_inputs(self):
         """
