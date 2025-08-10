@@ -268,19 +268,34 @@ class ConfigSelection:
             if pd.isna(value) or value == "" or key in {"L_SCA", "ColperSCA"}:
                 continue
 
-            try:
-                if key == "IAM_matrix":
+            match key:
+                case "IAM_matrix":
                     # Convert string representation to Python list if needed
                     coeffs = ast.literal_eval(value) if isinstance(value, str) else value
                     # Replicate the coefficient row 4 times (one per SCA type)
                     iam_matrix = [coeffs] * 4
                     self.solar_field_group_object.IAM_matrix = iam_matrix
-                else:
-                    # All other parameters are passed directly
-                    self.solar_field_group_object.value(key, value)
-            except Exception as e:
-                print(f"[WARN] Could not assign '{key}': {e}")
-
+                case "A_aperture":
+                    self.solar_field_group_object.A_aperture = [value] * 4
+                case "W_aperture":
+                    self.solar_field_group_object.W_aperture = [value] * 4
+                case "Ave_Focal_Length":
+                    self.solar_field_group_object.Ave_Focal_Length = [value] * 4
+                case "Distance_SCA":
+                    self.solar_field_group_object.Distance_SCA = [value] * 4
+                case "TrackingError":
+                    self.solar_field_group_object.TrackingError = [value] * 4
+                case "Error":
+                    self.solar_field_group_object.Error = [value] * 4
+                case "GeomEffects":
+                    self.solar_field_group_object.GeomEffects = [value] * 4
+                case "Rho_mirror_clean":
+                    self.solar_field_group_object.Rho_mirror_clean = [value] * 4
+                case "Dirt_mirror":
+                    self.solar_field_group_object.Dirt_mirror = [value] * 4
+                case _:  # ignore unknown parameters
+                    if self.verbose >= 1:
+                        print(f"[WARN] '{key}' is not a recognized SolarField parameter.")
     
     def get_input(self, key):
         for module in self.modules:
