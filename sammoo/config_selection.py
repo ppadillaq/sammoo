@@ -22,6 +22,7 @@ import PySAM.ThermalrateIph as tr
 import PySAM.CashloanHeat as cl
 
 from sammoo.components.weather_design_point import WeatherDesignPoint
+from sammoo.components import SolarLoopConfiguration
 from importlib.resources import files
 
 
@@ -420,7 +421,16 @@ class ConfigSelection:
             - Uses `self.verbose` to control PySAM verbosity.
         """
         try:
-            for var_name in x:
+            for var_name, value in x.items():
+                if var_name == "n_sca_per_loop":
+                    # Special handling: generate and set trough_loop_control array
+                    loop_config = SolarLoopConfiguration(int(value))
+                    control_array = loop_config.generate_trough_loop_control()
+                    self.Controller_group_object.trough_loop_control = control_array
+                    if self.verbose >= 2:
+                        print(f"[DEBUG] Set trough_loop_control with n_sca_per_loop={value}")
+                    continue
+
                 group_object = self.variable_to_group.get(var_name)
                 if group_object is not None:
                     setattr(group_object, var_name, x[var_name])
