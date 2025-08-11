@@ -88,19 +88,24 @@ class ThermalLoadProfileLPG:
         setting the following parameters:
             - timestep_load_abs  [kW]
             - q_pb_design        [MW]
-            - system_capacity    [kW]
         
         Parameters:
             config (ConfigSelection): The SAM configuration object.
+
+        Notes
+        -----
+        - This method intentionally does NOT set `system_capacity` in `CashloanHeat`.
+          In most IPH workflows you should not manually override that parameter in the
+          financial module; rely on the physical-financial linkage or handle it outside
+          this helper if strictly required.
         """
         profile_kw = self.get_hourly_kw_profile()
         q_pb_design_mw = self.get_average_power_mw()
 
         config.set_input("timestep_load_abs", profile_kw)
         config.set_input("q_pb_design", q_pb_design_mw)
-        #config.set_input("system_capacity", q_pb_design_mw * 1000)
 
-        print("[INFO] Thermal load profile and power values applied to SAM configuration.")
+        print("[INFO] Thermal load profile (`timestep_load_abs`, kW) and `q_pb_design` (MW) applied to SAM configuration.")
     
     def plot_year(self):
         """Plot the yearly consumption profile (in kW or MW depending on peak value)."""
