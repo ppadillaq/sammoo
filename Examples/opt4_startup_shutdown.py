@@ -1,4 +1,5 @@
-# examples/optimize_startup_shutdown.py
+# examples/opt4_startup_shutdown.py
+
 
 from sammoo import ConfigSelection, ParMOOSim
 import numpy as np

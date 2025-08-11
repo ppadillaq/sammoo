@@ -1,4 +1,5 @@
-# examples/multiobj_row_distance_opt.py
+# examples/opt3_multiobj_row_distance.py
+
 
 """
 Multi-objective thermo-economic optimization of a parabolic trough solar power plant
