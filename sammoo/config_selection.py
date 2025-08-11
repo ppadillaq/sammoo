@@ -336,6 +336,10 @@ class ConfigSelection:
             inputs_dict (dict): Keys are input variable names, values are the values to assign.
         """
         for key, value in inputs_dict.items():
+            if key == "n_sca_per_loop":
+                tlc = SolarLoopConfiguration(int(value)).generate_trough_loop_control()
+                self.set_input("trough_loop_control", tlc)
+                continue
             self.set_input(key, value)
     
     def _collect_outputs(self):
