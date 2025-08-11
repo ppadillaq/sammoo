@@ -39,9 +39,10 @@ profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
 # Diseño del sistema
 designVariables = {
-    "tshours": ([0, 20], "integer"),
-    "specified_solar_multiple": ([0.7, 4.0], "continuous"),
-    "T_loop_out": ([200, 250], "integer")
+    "tshours": ([0, 24], "integer"),
+    "specified_solar_multiple": ([0.7, 5.0], "continuous"),
+    "T_loop_out": ([200, 250], "integer"),
+    "n_sca_per_loop": ([7, 20], "integer"),
 }
 
 # Lista de funciones objetivo a estudiar por separado
@@ -71,7 +72,7 @@ for obj_name, description in objectives:
     
     # Apply demand profile → sets timestep_load_abs, q_pb_design and system_capacity
     profile.apply_to_config(config)
-    
+
     # Crear optimizador
     moop = ParMOOSim(config, search_budget=30)
 
@@ -96,9 +97,11 @@ for obj_name, description in objectives:
         "tshours": x_input["tshours"],
         "SM": x_input["specified_solar_multiple"],
         "T_loop_out": x_input["T_loop_out"],
+        "SCA/loop": x_input["n_sca_per_loop"],
         "LCS [€]": output_map.get("-LCS", "-"),
         "LCOE [€/kWh]": output_map.get("LCOE", "-"),
         "Payback [yrs]": output_map.get("Payback", "-"),
+        "NPV [€]": output_map.get("-NPV", "-"),
         #"LCS [€]": best["-LCS"] if "-LCS" in results.columns else "-",
         #"LCOE [€/kWh]": best["LCOE"] if "LCOE" in results.columns else "-",
         #"Payback [yrs]": best["Payback"] if "Payback" in results.columns else "-"
