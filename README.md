@@ -24,6 +24,10 @@ It allows you to:
 - Optimize system configurations with multiple economic and technical objectives.
 - Analyze Pareto fronts and export results.
 
+<p align="center">
+  <img src="assets/example_Pareto_Front.svg" alt="Pareto Front" width="400"/>
+</p>
+
 ## 📦 Features
 
 - Modular simulation wrapper (`ConfigSelection`) for different SAM configurations.

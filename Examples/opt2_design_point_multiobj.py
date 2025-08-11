@@ -72,7 +72,7 @@ profile.apply_to_config(config)
 # Initialize and solve optimization problem
 # -----------------------------
 my_moop = ParMOOSim(config, search_budget=30)
-my_moop.solve_all(sim_max=50) # sim_max=1 for faster evaluation; increase for better convergence
+my_moop.solve_all(sim_max=100) # sim_max=1 for faster evaluation; increase for better convergence
 
 # -----------------------------
 # Output results
