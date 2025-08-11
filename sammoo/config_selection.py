@@ -129,7 +129,7 @@ class ConfigSelection:
             case "LCOH Calculator":
                 finance_model = lcoe.from_existing(system_model)
                 template_dir = files("sammoo.templates.iph_LCOH_calculator")
-                file_names = ["untitled_trough_physical_iph", "untitled_lcoefcr_design"]
+                file_names = ["default_trough_physical_iph", "default_lcoefcr_design"]
                 self.modules = [system_model, finance_model]
 
             case "Commercial owner":
@@ -146,10 +146,10 @@ class ConfigSelection:
 
                 template_dir = files("sammoo.templates.iph_parabolic_commercial_owner")
                 file_names = [
-                    "untitled_trough_physical_iph",
-                    "untitled_utilityrate5",
-                    "untitled_thermalrate_iph",
-                    "untitled_cashloan_heat"
+                    "default_trough_physical_iph",
+                    "default_utilityrate5",
+                    "default_thermalrate_iph",
+                    "default_cashloan_heat"
                     ]
                 self.modules = [system_model, utility_model, thermalrate_model, financial_model]
 
