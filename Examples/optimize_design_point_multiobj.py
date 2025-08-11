@@ -48,8 +48,8 @@ design_variables = {"tshours": ([0,20],"integer"),                          # Th
 # -----------------------------
 # Define objective functions
 # -----------------------------
-obj_functions = ["LCOE", "Payback","-LCS"] # Minimize LCOE, Payback; Maximize Life Cycle Savings
-
+obj_functions = ["LCOE","-LCS"] # Minimize LCOE, Payback; Maximize Life Cycle Savings
+# "Payback"
 
 # -----------------------------
 # Create configuration and apply thermal demand
