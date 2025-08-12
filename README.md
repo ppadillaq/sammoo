@@ -64,41 +64,47 @@ profile.export_csv("thermal_profile.csv")
 
 ```
 sammoo/
-├── sammoo/                           # Core package
-│ ├── __init__.py
-│ ├── version.py
-│ ├── config.py                       # Contains ConfigSelection class
-│ ├── optimizer.py                    # Contains ParMOOSim class
-│ ├── profiles/
-│ │   ├── __init__.py
-│ │   └── thermal_load_lpg.py         # ThermalLoadProfileLPG class
-│ ├── resources/
-│ │   └── solar_resource/
-│ │       └── tucson.csv
-│ └── templates/                      # JSON SAM templates
+├── sammoo/                             # Core package
 │   ├── __init__.py
-│   └── iph_parabolic_commercial_owner/
-│      ├── __init__.py
-│      └── *.json
-├── examples/                         # Example usage scripts
-│ └── single_objective_comparison.py
+│   ├── version.py
+│   ├── config_selection.py              # ConfigSelection class
+│   ├── parmoo_simulation.py             # ParMOOSim class
+│   ├── components/                      # New components module (v0.2.0)
+│   │   ├── __init__.py
+│   │   ├── thermal_load_lpg.py          # ThermalLoadProfileLPG class (enhanced)
+│   │   ├── weather_design_point.py      # Weather-based DNI calculation helper
+│   │   └── solar_loop_configuration.py  # Solar field / loop setup helpers
+│   ├── resources/
+│   │   ├── solar_resource/
+│   │   │   └── seville_spain.csv        # Default weather CSV
+│   │   └── collector_data/
+│   │       └── iph_collectors_parameters.csv  # Industrial Process Heat collectors database
+│   └── templates/                       # JSON SAM templates
+│       ├── __init__.py
+│       └── iph_parabolic_commercial_owner/
+│           ├── __init__.py
+│           └── *.json
+├── examples/                            # Example usage scripts
+│   ├── op1_single_objective_comparison.py
+│   ├── opt2_design_point_multiobj.py
+│   ├── opt3_multiobj_row_distance.py
+│   └── opt4_startup_shutdown.py
 ├── README.md
 ├── CHANGELOG.md
 ├── pyproject.toml
 ├── MANIFEST.in
 ├── LICENSE
+
 ```
 
 ## 📂 Example Scripts
 
 The `examples/` folder contains several usage scenarios of the `sammoo` package:
 
-- `lpg_usage.py`: Generate and visualize an hourly thermal load profile from monthly LPG consumption.
-- `multiobj_row_distance_opt.py`: Multi-objective optimization of solar field row spacing using ParMOO.
-- `opt_layout.py`: Explore physical parameters and outputs of a CSP system using direct PySAM access.
-- `parabolicIPHcommercial_owner.py`: Multi-objective optimization of design parameters (tshours, SM, T_loop_out).
-- `single_objective_comparison.py`: Compare optimal designs for different single-objective formulations.
-- `test_utility_module.py`: Investigate the output of the UtilityRate5 module and check consistency of billing results.
+- `opt1_single_objective_comparison.py`: Compare optimal designs for different single-objective formulations (e.g., LCOE, Payback, LCS, NPV).
+- `opt2_design_point_multiobj.py`: Multi-objective optimization at a fixed design point (e.g., SM and storage hours), optionally applying a thermal load profile.
+- `opt3_multiobj_row_distance.py`: Multi-objective optimization of solar field row spacing (`Row_Distance`) using ParMOO.
+- `opt4_startup_shutdown.py`: Optimization focusing on startup/shutdown temperatures and their impact on techno-economic performance.
 
 💡 **Note**: Example scripts (`examples/`) are not included in the PyPI installation.  
 If you want to explore the examples, please [clone the GitHub repository](https://github.com/ppadillaq/sammoo).
@@ -138,12 +144,12 @@ pip install -e .
 ### ▶️ Run an example
 
 ```bash
-python examples/single_objective_comparison.py
+python examples/opt1_single_objective_comparison.py
 ```
 
 ## 🛠 Dependencies
 
-- Python ≥ 3.8
+- Python ≥ 3.10
 - NREL PySAM
 - ParMOO
 - NumPy
@@ -158,24 +164,45 @@ pip install pysam parmoo numpy matplotlib
 ## 📈 Example Use Case
 
 ```python
-from sammoo import ConfigSelection, ParMOOSim
+# Minimal example: multi-objective optimization with a thermal load profile
 
+from sammoo import ConfigSelection, ParMOOSim
+from sammoo.components import ThermalLoadProfileLPG
+
+# 1) (Optional) Generate an hourly thermal load profile from monthly LPG consumption (kg)
+monthly_kg = {1: 11000, 2: 9000, 3: 8000, 4: 9500, 5: 9200, 6: 9800,
+              7: 8600, 8: 8700, 9: 9000, 10: 9400, 11: 8800, 12: 9600}
+profile = ThermalLoadProfileLPG(monthly_kg=monthly_kg)  # uses default efficiency and PCI
+
+# 2) Define the design space (use "continuous" / "integer")
 design_vars = {
-    "specified_solar_multiple": [(1.0, 3.0), "float"],
-    "tshours": [(2, 8), "int"]
+    "specified_solar_multiple": ([1.0, 3.0], "continuous"),
+    "tshours": ([2, 8], "integer"),
 }
 
-selected_outputs = ["LCOE", "-NPV"]
+# 3) Define objectives (minimize LCOE, maximize LCS)
+selected_outputs = ["LCOE", "-LCS"]
 
+# 4) Create the SAM configuration (optionally set collector/HTF)
 cfg = ConfigSelection(
     config="Commercial owner",
     selected_outputs=selected_outputs,
-    design_variables=design_vars
+    design_variables=design_vars,
+    collector_name="Power Trough 250",   # optional
+    htf_name="Therminol VP-1",           # optional
+    verbose=0
 )
 
-opt = ParMOOSim(cfg, auto_switch=True)
-opt.optimize_step()
-opt.plot_results()
+# Apply the demand profile → sets timestep_load_abs and sizes q_pb_design
+profile.apply_to_config(cfg)
+
+# 5) Run the optimization (increase search_budget and sim_max for better results)
+opt = ParMOOSim(cfg, search_budget=20, auto_switch=True)
+opt.solve_all(sim_max=50)
+
+# 6) Display results
+print(opt.get_results())
+
 ```
 
 ## ☀️ Weather Data
@@ -190,7 +217,7 @@ Your custom weather files must follow the TMY3 format used by SAM.
 
 ## 📚 Publications
 
-The version **1.0.0** of this project was submitted as part of the following Master's Thesis:
+The version **0.2.0** of this project was submitted as part of the following Master's Thesis:
 
 - Pedro Padilla Quesada. *Optimization of Solar Industrial Process Heat (SIPH) Systems with Parabolic Troughs using PySAM and Multi-objective Optimization*. Master’s Thesis in Research in Industrial Technologies, Universidad Nacional de Educación a Distancia (UNED), Spain, 2025.
 
@@ -206,7 +233,7 @@ See the [`LICENSE`](./LICENSE) file for full text.
 
 ## 👤 Author
 
-Pedro Padilla Quesada
-MSc in Research in Industrial Technologies
+Pedro Padilla Quesada<br>
+MSc in Research in Industrial Technologies<br>
 UNED, Spain
 
