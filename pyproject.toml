@@ -30,5 +30,6 @@ version = {attr = "sammoo.version.__version__"}
 [tool.setuptools.package-data]
 sammoo = [
     "templates/**/*.json",
-    "resources/solar_resource/*.csv"
+    "resources/solar_resource/*.csv",
+    "resources/collector_data/*.csv"
 ]
