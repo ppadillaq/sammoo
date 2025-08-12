@@ -79,10 +79,10 @@ for obj_name, description in objectives:
     profile.apply_to_config(config)
 
     # Create optimizer
-    moop = ParMOOSim(config, search_budget=30)
+    moop = ParMOOSim(config, search_budget=50)
 
     # Run optimization (adjust sim_max depending on model runtime cost)
-    moop.solve_all(sim_max=50, plot=False)
+    moop.solve_all(sim_max=100, plot=False)
 
     # Retrieve results (select best design)
     results = moop.get_results()
