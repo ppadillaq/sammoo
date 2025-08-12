@@ -10,12 +10,14 @@ using different cost functions for a CSP system design problem.
 Each optimization uses a different objective function:
     - Minimize LCOE (Levelized Cost of Energy)
     - Minimize Payback Period
-    - Maximize Year 1 Savings (via -Savings)
+    - Maximize Life Cycle Savings (via -LCS)
+    - Maximize Net Present Value (via -NPV)
 
-The same design space is used in all three cases:
+The same design space is used in all cases:
     - Thermal storage hours (tshours)
     - Solar multiple (SM)
     - Loop outlet temperature (T_loop_out)
+    - Number of SCA per loop (n_sca_per_loop)
 
 Results show how different objective choices lead to different
 optimal design points, demonstrating the trade-offs involved in
@@ -37,10 +39,10 @@ monthly_data = {
     10: 12899, 11: 6090,  12: 12343
 }
 
-# Generate thermal load profile
+# Generate hourly thermal load profile from monthly LPG consumption
 profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
-# Diseño del sistema
+# System design variables and bounds
 designVariables = {
     "tshours": ([0, 24], "integer"),
     "specified_solar_multiple": ([0.7, 5.0], "continuous"),
@@ -48,7 +50,7 @@ designVariables = {
     "n_sca_per_loop": ([7, 20], "integer"),
 }
 
-# Lista de funciones objetivo a estudiar por separado
+# List of single-objective optimizations to run
 objectives = [
     ("-LCS", "Maximize Life Cycle Savings"),
     ("LCOE", "Minimize Levelized Cost of Energy"),
@@ -56,14 +58,14 @@ objectives = [
     ("-NPV", "Maximize Net Present Value"),
 ]
 
-# Almacena los mejores resultados de cada caso
+# Store best results from each optimization case
 summary_rows = []
 
-# Ejecutar la optimización para cada función objetivo
+# Run optimization for each objective
 for obj_name, description in objectives:
     print(f"\n========== Optimizing objective: {description} ==========")
 
-    # Crear configuración SAM
+    # Create SAM configuration
     config = ConfigSelection(
         config="Commercial owner",
         selected_outputs=[obj_name],
@@ -73,20 +75,20 @@ for obj_name, description in objectives:
         verbose=0
         )
     
-    # Apply demand profile → sets timestep_load_abs, q_pb_design and system_capacity
+    # Apply demand profile → sets timestep_load_abs and q_pb_design
     profile.apply_to_config(config)
 
-    # Crear optimizador
+    # Create optimizer
     moop = ParMOOSim(config, search_budget=30)
 
-    # Ejecutar optimización (ajusta sim_max según coste del modelo)
+    # Run optimization (adjust sim_max depending on model runtime cost)
     moop.solve_all(sim_max=50, plot=False)
 
-    # Obtener resultados (el mejor diseño)
+    # Retrieve results (select best design)
     results = moop.get_results()
     best = results.sort_values(by=obj_name).iloc[0] if not obj_name.startswith("-") else results.sort_values(by=obj_name, ascending=False).iloc[0]
 
-    # Añadir métricas adicionales ejecutando el mejor punto
+    # Run simulation at best point to retrieve extended outputs
     config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV"])
     x_input = {var: best[var] for var in designVariables.keys()}
     config.set_inputs(x_input)
@@ -94,7 +96,7 @@ for obj_name, description in objectives:
 
     output_map = {name: val for name, val in zip(config.selected_outputs, extended_outputs)}
 
-    # Guardar resumen
+    # Store summary row
     summary_rows.append({
         "Objective": description,
         "tshours": x_input["tshours"],
@@ -105,12 +107,9 @@ for obj_name, description in objectives:
         "LCOE [€/kWh]": output_map.get("LCOE", "-"),
         "Payback [yrs]": output_map.get("Payback", "-"),
         "NPV [€]": output_map.get("-NPV", "-"),
-        #"LCS [€]": best["-LCS"] if "-LCS" in results.columns else "-",
-        #"LCOE [€/kWh]": best["LCOE"] if "LCOE" in results.columns else "-",
-        #"Payback [yrs]": best["Payback"] if "Payback" in results.columns else "-"
     })
 
-# Mostrar tabla resumen
+# Display summary table
 summary_df = pd.DataFrame(summary_rows)
 print("\n========== Comparison of Optimal Designs ==========")
 print(summary_df.to_string(index=False))
