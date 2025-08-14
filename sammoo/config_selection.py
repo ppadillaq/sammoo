@@ -79,6 +79,7 @@ class ConfigSelection:
         Raises:
             ValueError: If required SAM templates or weather file are missing.
         """
+        self.constraints = []  # store constraints for ParMOO
         self.verbose = verbose  # Default verbosity for simulation execution
         
         self.selected_outputs = selected_outputs
@@ -472,4 +473,31 @@ class ConfigSelection:
         except Exception as e:
             print(f"[ERROR] Simulation failed for input {x} with error: {e}")
             return [np.nan] * len(self.selected_outputs)
+        
+    def add_constraint(self, name, func):
+        """
+        Adds a constraint function for use in ParMOO optimization.
+
+        Parameters:
+            name (str): Unique name for the constraint.
+            func (callable): Constraint function with signature func(x, s) -> float.
+                             Should return <= 0 for feasible points.
+        
+        Example:
+            def c1(x, s):
+                return 0.1 - x["x1"]
+            config.add_constraint("c1", c1)
+        """
+        if not callable(func):
+            raise ValueError("Constraint function must be callable.")
+        self.constraints.append({'name': name, 'constraint': func})
+        if self.verbose >= 1:
+            print(f"[INFO] Constraint '{name}' added.")
+
+    def get_constraints(self):
+        """
+        Returns the list of stored constraints in ParMOO format.
+        Each item is a dict with keys 'name' and 'constraint'.
+        """
+        return self.constraints
     
