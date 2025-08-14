@@ -44,6 +44,8 @@ class ParMOOSim:
             initial_acq: int
                 Number of initial acquisitions added before the first optimization step (default: 3).
         """
+        self.config = config
+
         # 🔒 Check early if weather file is missing
         weather_file = config.get_input("file_name")
         if not weather_file or weather_file.strip() == "":
@@ -85,17 +87,20 @@ class ParMOOSim:
         # Add objectives
         self._add_objectives()
 
+        # --- Add constraints from ConfigSelection (if any) ---
+        if hasattr(self.config, "get_constraints"):
+            for c in self.config.get_constraints():
+                self.my_moop.addConstraint(c)
+                if getattr(config, "verbose", 1) >= 1:
+                    print(f"[INFO] Constraint '{c['name']}' added to MOOP.")
+
         self.num_steps = 0
         self.switch_after = switch_after
         self.batch_size = batch_size
         self.switched_to_batch = False
         self.auto_switch = auto_switch
         self.prev_objectives = []  # list of scalar mean values from previous Pareto front evaluations (for convergence tracking)
-
         self.epsilon = epsilon
-
-        #def c1(x, s): return 0.1 - x["x1"]
-        #my_moop.addConstraint({'name': "c1", 'constraint': c1})
 
         # Add initial acquisitions before starting the optimization loop
         self.initial_acquisitions(initial_acq)
@@ -315,6 +320,11 @@ class ParMOOSim:
 
         # Re-add objectives
         self._add_objectives()
+
+        # Re-add constraints registered in ConfigSelection
+        if hasattr(self, "config") and hasattr(self.config, "get_constraints"):
+            for c in self.config.get_constraints():
+                self.my_moop.addConstraint(c)
 
         # Reset internal state
         self.num_steps = 0
