@@ -59,8 +59,12 @@ class ParMOOSim:
         # Save configuration
         self.design_var_dict = config.design_variables # dictionary of design variables
         self.objective_names = config.selected_outputs
+        self.constraints_dict = config.constraints_dict
         self.sim_func = config.sim_func
         self.search_budget = search_budget
+
+        n_obj = len(self.objective_names)
+        n_con = len(self.constraints_dict)
 
         # Add design variables
         for key,value in self.design_var_dict.items():
@@ -77,7 +81,7 @@ class ParMOOSim:
         # Add simulation
         self.my_moop.addSimulation({
             'name': "SAMOptim",
-            'm': len(self.objective_names),
+            'm': n_obj + n_con,
             'sim_func': config.sim_func,
             'search': LatinHypercube,
             'surrogate': GaussRBF,
@@ -87,12 +91,8 @@ class ParMOOSim:
         # Add objectives
         self._add_objectives()
 
-        # --- Add constraints from ConfigSelection (if any) ---
-        if hasattr(self.config, "get_constraints"):
-            for c in self.config.get_constraints():
-                self.my_moop.addConstraint(c)
-                if getattr(config, "verbose", 1) >= 1:
-                    print(f"[INFO] Constraint '{c['name']}' added to MOOP.")
+        # Add constraints (from constraints_dict)
+        self._add_constraints()
 
         self.num_steps = 0
         self.switch_after = switch_after
@@ -131,6 +131,26 @@ class ParMOOSim:
                 return obj_func
             
             self.my_moop.addObjective({'name': name, 'obj_func': make_obj_func(idx, sign)})
+    
+    def _add_constraints(self):
+        """
+        Adds simple constraints of the form:  s[name] <= limit
+        ParMOO feasibility convention: c(x, s) <= 0
+        So we register: c(x, s) = s[name] - limit
+        """
+        start_idx = len(self.objective_names)  # constraints go after objectives
+        for i, (name, limit) in enumerate(self.constraints_dict.items()):
+            idx = start_idx + i
+            # Define constraint function based on index and sign
+            def make_const_func(index: int, lim: float):
+                def const_func(x, s):
+                    return s["SAMOptim"][index] - lim
+                return const_func
+            
+            self.my_moop.addConstraint({
+                'name': f"{name}_le_{limit:g}",
+                'constraint': make_const_func(idx, limit)})
+
     
     def initial_acquisitions(self, n=3):
         """Add an initial number of acquisitions."""
@@ -287,8 +307,6 @@ class ParMOOSim:
             print(f"Current Pareto front ({len(results)} points):")
             print(results)
 
-
-
     def reset(self):
         """
         Resets the MOOP instance to its initial state (designs, objectives, simulation),
@@ -308,23 +326,22 @@ class ParMOOSim:
                 'ub': value[0][1]
             })
 
+        n_obj = len(self.objective_names)
+        n_con = len(self.constraints_dict)
+
         # Re-add simulation
         self.my_moop.addSimulation({
             'name': "SAMOptim",
-            'm': len(self.objective_names),
+            'm': n_obj + n_con,
             'sim_func': self.sim_func,
             'search': LatinHypercube,
             'surrogate': GaussRBF,
             'hyperparams': {'search_budget': self.search_budget}
         })
 
-        # Re-add objectives
+        # Re-add objectives and constraints
         self._add_objectives()
-
-        # Re-add constraints registered in ConfigSelection
-        if hasattr(self, "config") and hasattr(self.config, "get_constraints"):
-            for c in self.config.get_constraints():
-                self.my_moop.addConstraint(c)
+        self._add_constraints()
 
         # Reset internal state
         self.num_steps = 0
