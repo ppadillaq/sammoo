@@ -44,7 +44,7 @@ class ConfigSelection:
     def __init__(self, config, selected_outputs, design_variables, use_default = True,
                  user_weather_file=None, collector_name="Power Trough 250", 
                  custom_collector_data=None, htf_name="Pressurized Water",
-                 custom_I_bn_des=None, verbose=1):
+                 custom_I_bn_des=None, verbose=1, constraints_dict: dict[str, float] | None = None):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -75,11 +75,14 @@ class ConfigSelection:
                 it will be automatically computed from the assigned weather file.
             verbose (int, optional): 
                 Verbosity level for PySAM execution. 0 = silent, 1 = basic (default), 2+ = detailed.
+            constraints_dict : dict[str, float], optional
+                Mapping of constraint output names to their upper bounds.
+                Each pair represents a constraint of the form: s[name] <= limit.
+                If None, no constraints are defined.
 
         Raises:
             ValueError: If required SAM templates or weather file are missing.
         """
-        self.constraints = []  # store constraints for ParMOO
         self.verbose = verbose  # Default verbosity for simulation execution
         
         self.selected_outputs = selected_outputs
@@ -101,11 +104,13 @@ class ConfigSelection:
             "-annual_energy": "annual_energy",
             "-LCS": "cf_discounted_savings",
             "total_installed_cost": "total_installed_cost",
+            "total_land_area": "total_land_area",
             # Add more if needed
         }
         #LCOE = finance_model.Outputs.lcoe_fcr
 
         self.config = config
+        self.constraints_dict: dict[str, float] = dict(constraints_dict) if constraints_dict else {}
         self.use_default = use_default
         if self.use_default:
             system_model = tpiph.default("PhysicalTroughIPHCommercial")
@@ -368,6 +373,27 @@ class ConfigSelection:
                 print(f"Warning: Output '{internal_key}' not found in any module.")
         return np.array(outputs)
     
+    def _get_output_value(self, key: str):
+        """
+        Return a single output value by name `key`.
+        Implement this to mirror the logic used in `_collect_outputs()`.
+        Examples of sources:
+        - Direct PySAM attributes (e.g., getattr(module, attr))
+        - Cached result dict from a post-process step
+        - A small dispatch map {key: callable_returning_value}
+        """
+        internal_key = self.output_name_map.get(key, key)
+        for module in self.modules:
+            if hasattr(module, "Outputs"):
+                outputs_group = getattr(module, "Outputs")
+                if hasattr(outputs_group, internal_key):
+                    val = getattr(outputs_group, internal_key)
+                    # Si alguna salida es vector/serie (caso raro en constraints), toma el último
+                    if isinstance(val, (list, tuple, np.ndarray)):
+                        return val[-1]
+                    return val
+        raise KeyError(f"Output '{key}' not available via Outputs as '{internal_key}'.")
+
     def _estimate_installed_cost(self, aperture_area, storage_capacity_mwh, heat_sink_power_mwt):
         cost_per_m2_solar = 100.0        # $/m²
         cost_per_kwh_storage = 62.0      # $/kWh
@@ -425,6 +451,9 @@ class ConfigSelection:
             - If simulation fails, the function returns a vector of NaNs.
             - Uses `self.verbose` to control PySAM verbosity.
         """
+        n_obj = len(self.selected_outputs)
+        n_con = len(self.constraints_dict)
+        total_len = n_obj + n_con
         try:
             for var_name, value in x.items():
                 if var_name == "n_sca_per_loop":
@@ -468,36 +497,15 @@ class ConfigSelection:
             for m in self.modules:
                 m.execute(self.verbose)
 
-            # collect and return outputs after execution
-            return self._collect_outputs()
+            # collect objective values after execution
+            obj_vals = self._collect_outputs()
+
+            # append constraint outputs in dict order
+            con_vals = [self._get_output_value(k) for k in self.constraints_dict.keys()]
+
+            return np.concatenate([obj_vals, np.asarray(con_vals, dtype=float)])
+
         except Exception as e:
             print(f"[ERROR] Simulation failed for input {x} with error: {e}")
-            return [np.nan] * len(self.selected_outputs)
+            return [np.nan] * total_len
         
-    def add_constraint(self, name, func):
-        """
-        Adds a constraint function for use in ParMOO optimization.
-
-        Parameters:
-            name (str): Unique name for the constraint.
-            func (callable): Constraint function with signature func(x, s) -> float.
-                             Should return <= 0 for feasible points.
-        
-        Example:
-            def c1(x, s):
-                return 0.1 - x["x1"]
-            config.add_constraint("c1", c1)
-        """
-        if not callable(func):
-            raise ValueError("Constraint function must be callable.")
-        self.constraints.append({'name': name, 'constraint': func})
-        if self.verbose >= 1:
-            print(f"[INFO] Constraint '{name}' added.")
-
-    def get_constraints(self):
-        """
-        Returns the list of stored constraints in ParMOO format.
-        Each item is a dict with keys 'name' and 'constraint'.
-        """
-        return self.constraints
-    
