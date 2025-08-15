@@ -12,7 +12,7 @@
 	"HDR_rough" : 4.57e-05,
 	"theta_stow" : 170,
 	"theta_dep" : 10,
-	"Row_Distance" : 15,
+	"Row_Distance" : 3,
 	"T_loop_in_des" : 110,
 	"T_loop_out" : 200,
 	"T_startup" : 159.30000000000001,
