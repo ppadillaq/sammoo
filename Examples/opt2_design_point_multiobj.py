@@ -24,6 +24,14 @@ from sammoo import ConfigSelection, ParMOOSim
 from sammoo.components import ThermalLoadProfileLPG
 
 # -----------------------------
+# Toggle land-area constraint
+# -----------------------------
+ENABLE_LAND_CONSTRAINT = True
+MAX_LAND_AC = 1.0  # adjust as needed
+
+constraints_dict = {"total_land_area": MAX_LAND_AC} if ENABLE_LAND_CONSTRAINT else {}
+
+# -----------------------------
 # Monthly LPG consumption data (kg)
 # -----------------------------
 monthly_data = {
@@ -44,13 +52,13 @@ profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 design_variables = {"tshours": ([0,24],"integer"),                        # Thermal storage hours
                    "specified_solar_multiple": ([0.7,5.0],"continuous"),  # Solar multiple (SM)
                    "T_loop_out":([200,250],"integer"),                    # Loop outlet temperature [°C]
-                   "n_sca_per_loop": ([7, 20], "integer"),
+                   "n_sca_per_loop": ([7, 20], "integer"),                # SCAs per loop (discrete)
                    }                     
 
 # -----------------------------
 # Define objective functions
 # -----------------------------
-obj_functions = ["LCOE","-LCS"] # Minimize LCOE, Payback; Maximize Life Cycle Savings
+obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
 # "Payback"
 
 # -----------------------------
@@ -62,7 +70,8 @@ config = ConfigSelection(
     design_variables=design_variables,
     collector_name="Absolicon T160",
     htf_name="Therminol VP-1",
-    verbose=0
+    verbose=0,
+    constraints_dict=constraints_dict,
 )
 
 # Apply demand profile → sets timestep_load_abs, q_pb_design and system_capacity
