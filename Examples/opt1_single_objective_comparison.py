@@ -2,18 +2,17 @@
 
 
 """
-single_objective_comparison.py
-
-Performs three independent single-objective thermo-economic optimizations
-using different cost functions for a CSP system design problem.
+Performs five independent single-objective thermo-economic optimizations
+for a parabolic trough CSP system design problem.
 
 Each optimization uses a different objective function:
-    - Minimize LCOE (Levelized Cost of Energy)
-    - Minimize Payback Period
-    - Maximize Life Cycle Savings (via -LCS)
-    - Maximize Net Present Value (via -NPV)
+    - Minimize Levelized Cost of Energy (LCOE)
+    - Minimize Simple Payback Period
+    - Maximize Life Cycle Savings (LCS)   [via -LCS]
+    - Maximize Net Present Value (NPV)    [via -NPV]
+    - Maximize Solar Fraction (SF)        [via -SF]
 
-The same design space is used in all cases:
+All optimizations explore the same design space:
     - Thermal storage hours (tshours)
     - Solar multiple (SM)
     - Loop outlet temperature (T_loop_out)
@@ -23,13 +22,19 @@ Results show how different objective choices lead to different
 optimal design points, demonstrating the trade-offs involved in
 techno-economic decision-making.
 
-Note: All optimizations use NREL PySAM via a custom simulation wrapper.
+Note: All simulations are executed through NREL's PySAM using
+the sammoo framework for integration with the optimization workflow.
 """
 
 import pandas as pd
 from sammoo import ConfigSelection, ParMOOSim
 from sammoo.components import ThermalLoadProfileLPG
 
+# Toggle land-area constraint
+ENABLE_LAND_CONSTRAINT = True
+MAX_LAND_AC = 1.0  # adjust as needed
+
+constraints_dict = {"total_land_area": MAX_LAND_AC} if ENABLE_LAND_CONSTRAINT else {}
 
 # Monthly LPG consumption data (kg)
 monthly_data = {
@@ -43,10 +48,10 @@ monthly_data = {
 profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
 # System design variables and bounds
-designVariables = {
+design_variables = {
     "tshours": ([0, 24], "integer"),
-    "specified_solar_multiple": ([0.7, 5.0], "continuous"),
-    "T_loop_out": ([200, 250], "integer"),
+    "specified_solar_multiple": ([0.5, 5.0], "continuous"),
+    "T_loop_out": ([200, 230], "integer"),
     "n_sca_per_loop": ([7, 20], "integer"),
 }
 
@@ -56,6 +61,7 @@ objectives = [
     ("LCOE", "Minimize Levelized Cost of Energy"),
     ("Payback", "Minimize Simple Payback Period"),
     ("-NPV", "Maximize Net Present Value"),
+    ("-SF", "Maximize Solar Fraction")
 ]
 
 # Store best results from each optimization case
@@ -69,10 +75,12 @@ for obj_name, description in objectives:
     config = ConfigSelection(
         config="Commercial owner",
         selected_outputs=[obj_name],
-        design_variables=designVariables,
+        design_variables=design_variables,
         collector_name="Absolicon T160",
         htf_name="Therminol VP-1",
-        verbose=0
+        storage_fluid_name="Therminol VP-1",
+        verbose=0,
+        constraints_dict=constraints_dict,
         )
     
     # Apply demand profile → sets timestep_load_abs and q_pb_design
@@ -89,8 +97,8 @@ for obj_name, description in objectives:
     best = results.sort_values(by=obj_name).iloc[0] if not obj_name.startswith("-") else results.sort_values(by=obj_name, ascending=False).iloc[0]
 
     # Run simulation at best point to retrieve extended outputs
-    config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV"])
-    x_input = {var: best[var] for var in designVariables.keys()}
+    config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV", "-SF"])
+    x_input = {var: best[var] for var in design_variables.keys()}
     config.set_inputs(x_input)
     extended_outputs = config.sim_func(x_input)
 
@@ -107,6 +115,7 @@ for obj_name, description in objectives:
         "LCOE [€/kWh]": output_map.get("LCOE", "-"),
         "Payback [yrs]": output_map.get("Payback", "-"),
         "NPV [€]": output_map.get("-NPV", "-"),
+        "SF [%]": output_map.get("-SF", "-"),
     })
 
 # Display summary table
