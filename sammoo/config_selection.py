@@ -44,7 +44,8 @@ class ConfigSelection:
     def __init__(self, config, selected_outputs, design_variables, use_default = True,
                  user_weather_file=None, collector_name="Power Trough 250", 
                  custom_collector_data=None, htf_name="Pressurized Water",
-                 custom_I_bn_des=None, verbose=1, constraints_dict: dict[str, float] | None = None):
+                 storage_fluid_name="Nitrate Salt", custom_I_bn_des=None, verbose=1, 
+                 constraints_dict: dict[str, float] | None = None):
         """
         Initializes a configuration for a PySAM simulation.
 
@@ -70,6 +71,8 @@ class ConfigSelection:
                 Custom dictionary with collector parameters to override the database.
             htf_name : str, optional
                 Heat Transfer Fluid name. Must match a key in HTF_CODES.
+            storage_fluid_name : str, optional
+                Thermal storage fluid name. Must match a key in HTF_CODES.
             custom_I_bn_des : float, optional
                 If provided, sets the design-point DNI (I_bn_des) explicitly. If None,
                 it will be automatically computed from the assigned weather file.
@@ -105,6 +108,8 @@ class ConfigSelection:
             "-LCS": "cf_discounted_savings",
             "total_installed_cost": "total_installed_cost",
             "total_land_area": "total_land_area",
+            "-annual_solar_fraction": "annual_solar_fraction",
+            "-SF": "heat_load_capacity_factor",
             # Add more if needed
         }
         #LCOE = finance_model.Outputs.lcoe_fcr
@@ -215,6 +220,16 @@ class ConfigSelection:
             print(f"[INFO] Fluid set to '{htf_name}' (code {htf_code})")
         else:
             print(f"[WARN] Unknown HTF name: '{htf_name}'. Available options: {list(self.HTF_CODES.keys())}")
+
+        # Set storage fluid
+        storage_fluid_code = self.HTF_CODES.get(storage_fluid_name, None)
+        if storage_fluid_code is not None:
+            self.set_input("store_fluid", storage_fluid_code)
+            print(f"[INFO] Storage fluid set to '{storage_fluid_name}' (code {storage_fluid_code})")
+        else:
+            print(f"[WARN] Unknown storage fluid name: '{storage_fluid_name}'. "
+                f"Available options: {list(self.HTF_CODES.keys())}")
+
 
     
     def get_default_weather_path(self):
