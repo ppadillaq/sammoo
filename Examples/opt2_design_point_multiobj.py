@@ -50,15 +50,18 @@ profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 # Define design space
 # -----------------------------
 design_variables = {"tshours": ([0,24],"integer"),                        # Thermal storage hours
-                   "specified_solar_multiple": ([0.7,5.0],"continuous"),  # Solar multiple (SM)
-                   "T_loop_out":([200,250],"integer"),                    # Loop outlet temperature [°C]
+                   "specified_solar_multiple": ([0.5,5.0],"continuous"),  # Solar multiple (SM)
+                   "T_loop_out":([200,230],"integer"),                    # Loop outlet temperature [°C]
                    "n_sca_per_loop": ([7, 20], "integer"),                # SCAs per loop (discrete)
                    }                     
 
 # -----------------------------
 # Define objective functions
 # -----------------------------
-obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
+# obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
+# obj_functions = ["LCOE","-NPV"] # Minimize LCOE, maximize LCS via -LCS
+obj_functions = ["LCOE","-SF"]
+# obj_functions = ["LCOE","-annual_solar_fraction"] # Minimize LCOE, maximize SF
 # "Payback"
 
 # -----------------------------
@@ -70,6 +73,7 @@ config = ConfigSelection(
     design_variables=design_variables,
     collector_name="Absolicon T160",
     htf_name="Therminol VP-1",
+    storage_fluid_name="Therminol VP-1",
     verbose=0,
     constraints_dict=constraints_dict,
 )
@@ -80,8 +84,8 @@ profile.apply_to_config(config)
 # -----------------------------
 # Initialize and solve optimization problem
 # -----------------------------
-my_moop = ParMOOSim(config, search_budget=30)
-my_moop.solve_all(sim_max=100) # sim_max=1 for faster evaluation; increase for better convergence
+my_moop = ParMOOSim(config, search_budget=50)
+my_moop.solve_all(sim_max=200)
 
 # -----------------------------
 # Output results
