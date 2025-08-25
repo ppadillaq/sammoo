@@ -31,6 +31,12 @@ The goal is to identify the optimal row spacing that balances cost, performance,
 from sammoo import ConfigSelection, ParMOOSim
 from sammoo.components import ThermalLoadProfileLPG
 
+# Toggle land-area constraint
+ENABLE_LAND_CONSTRAINT = True
+MAX_LAND_AC = 1.0  # adjust as needed
+
+constraints_dict = {"total_land_area": MAX_LAND_AC} if ENABLE_LAND_CONSTRAINT else {}
+
 # Monthly LPG consumption data (kg)
 monthly_data = {
     1: 11343,  2: 15133,  3: 4983,
@@ -48,22 +54,25 @@ design_variables = {
 }
 
 # Define the objective functions
-objectiveFunctions = ["total_land_area", "-CF"]
+objective_functions = ["total_land_area", "-CF"]
 #"total_installed_cost"
 
 # Create the simulation configuration
 config = ConfigSelection(config="Commercial owner",
-                         selected_outputs=objectiveFunctions,
+                         selected_outputs=objective_functions,
                          design_variables=design_variables,
                          collector_name="Absolicon T160",
                          htf_name="Therminol VP-1",
-                         verbose=0)
+                         storage_fluid_name="Therminol VP-1",
+                         verbose=0,
+                         constraints_dict=constraints_dict,
+                         )
 
 # Set plant design point (fixed thermal capacity scenario)
 config.set_inputs({
-    "tshours": 22,                    # Thermal energy storage duration [h]
-    "T_loop_out": 222,               # Loop outlet temperature [°C]
-    "specified_solar_multiple": 4.1, # Solar multiple (design capacity multiplier)
+    "tshours": 5,                    # Thermal energy storage duration [h]
+    "T_loop_out": 210.0,             # Loop outlet temperature [°C]
+    "specified_solar_multiple": 1.8, # Solar multiple (design capacity multiplier)
     "n_sca_per_loop": 18,
 })
 
@@ -71,10 +80,10 @@ config.set_inputs({
 profile.apply_to_config(config)
 
 # Instantiate the optimizer
-my_moop = ParMOOSim(config, search_budget=5)
+my_moop = ParMOOSim(config, search_budget=50)
 
 # Run the multi-objective optimization (can increase sim_max for broader exploration)
-my_moop.solve_all(sim_max=10)
+my_moop.solve_all(sim_max=200)
 
 # Retrieve and print the optimization results
 results = my_moop.get_results()

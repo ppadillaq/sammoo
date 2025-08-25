@@ -58,9 +58,9 @@ design_variables = {"tshours": ([0,24],"integer"),                        # Ther
 # -----------------------------
 # Define objective functions
 # -----------------------------
-# obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
-# obj_functions = ["LCOE","-NPV"] # Minimize LCOE, maximize LCS via -LCS
-obj_functions = ["LCOE","-SF"]
+obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
+# obj_functions = ["LCOE","-NPV"] # Minimize LCOE, maximize NPV via -NPV
+# obj_functions = ["LCOE","-SF"]
 # obj_functions = ["LCOE","-annual_solar_fraction"] # Minimize LCOE, maximize SF
 # "Payback"
 
