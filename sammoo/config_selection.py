@@ -110,6 +110,7 @@ class ConfigSelection:
             "total_land_area": "total_land_area",
             "-annual_solar_fraction": "annual_solar_fraction",
             "-SF": "heat_load_capacity_factor",
+            "e_ch_tes": "e_ch_tes",
             # Add more if needed
         }
         #LCOE = finance_model.Outputs.lcoe_fcr
@@ -133,7 +134,11 @@ class ConfigSelection:
             "T_loop_out": self.solar_field_group_object, # Target loop outlet temperature [C]
             "tshours": self.TES_group_object, # hours of storage at design point
             "h_tank_in": self.TES_group_object, # total height of tank 'lb': 10, 'ub': 20
-            "Row_Distance": self.solar_field_group_object
+            "Row_Distance": self.solar_field_group_object,
+            "T_startup": self.solar_field_group_object,
+            "T_shutdown": self.solar_field_group_object,
+            "cold_tank_Thtr": self.TES_group_object, # Minimum allowable cold tank HTF temp [C]
+            "hot_tank_Thtr": self.TES_group_object, # Minimum allowable hot tank HTF temp [C]
         }
 
         match self.config:
