@@ -115,6 +115,7 @@ class ParMOOSim:
         For example:
             - "LCOE"         → minimize LCOE
             - "-net_energy"  → maximize net_energy
+            - "-SF"          → maximize Solar Fraction
 
         Internally, each objective is registered with ParMOO by wrapping the 
         appropriate index from the SAM simulation result and applying a sign (+1 or -1).
@@ -122,14 +123,28 @@ class ParMOOSim:
         for idx, name in enumerate(self.objective_names):
             # Detect if it is a maximization problem
             is_max = name.startswith("-")
+            clean_name = name.lstrip("-")
             sign = -1 if is_max else 1
 
-            # Define objective function based on index and sign
+            # if clean_name.upper() == "SF":
+            #     # Define custom SF objective
+            #     def obj_func_sf(x, s, sign=1):
+            #         annual_energy = s["SAMOptim"][self.config.selected_outputs.index("annual_energy")]
+            #         # Calcular demanda anual a partir del perfil (horario en kW)
+            #         demand_series = self.config.get_input("timestep_load_abs")  # array numpy length = 8760
+            #         annual_demand = float(demand_series.sum())     # kWh_th
+            #         sf = annual_energy / annual_demand
+            #         return sign * sf
+
+            #     self.my_moop.addObjective({'name': name, 'obj_func': lambda x, s, sign=sign: obj_func_sf(x, s, sign)})
+
+            # else:
+                # Default behaviour: define objective function based on index and sign
             def make_obj_func(index, sign=1):
                 def obj_func(x, s):
                     return sign * s["SAMOptim"][index]
                 return obj_func
-            
+        
             self.my_moop.addObjective({'name': name, 'obj_func': make_obj_func(idx, sign)})
     
     def _add_constraints(self):
