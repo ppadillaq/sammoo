@@ -111,6 +111,8 @@ class ConfigSelection:
             "-annual_solar_fraction": "annual_solar_fraction",
             "-SF": "heat_load_capacity_factor",
             "e_ch_tes": "e_ch_tes",
+            "nLoops": "nLoops",
+            "nSCA": "nSCA",
             # Add more if needed
         }
         #LCOE = finance_model.Outputs.lcoe_fcr
