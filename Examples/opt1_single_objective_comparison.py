@@ -52,16 +52,16 @@ design_variables = {
     "tshours": ([0, 24], "integer"),
     "specified_solar_multiple": ([0.5, 5.0], "continuous"),
     "T_loop_out": ([200, 230], "integer"),
-    "n_sca_per_loop": ([7, 20], "integer"),
+    "n_sca_per_loop": ([30, 70], "integer"),
 }
 
 # List of single-objective optimizations to run
 objectives = [
     ("-LCS", "Maximize Life Cycle Savings"),
     ("LCOE", "Minimize Levelized Cost of Energy"),
-    ("Payback", "Minimize Simple Payback Period"),
-    ("-NPV", "Maximize Net Present Value"),
-    ("-SF", "Maximize Solar Fraction")
+    #("Payback", "Minimize Simple Payback Period"),
+    #("-NPV", "Maximize Net Present Value"),
+    #("-SF", "Maximize Solar Fraction")
 ]
 
 # Store best results from each optimization case
@@ -87,17 +87,17 @@ for obj_name, description in objectives:
     profile.apply_to_config(config)
 
     # Create optimizer
-    moop = ParMOOSim(config, search_budget=50)
+    moop = ParMOOSim(config, search_budget=5)#50
 
     # Run optimization (adjust sim_max depending on model runtime cost)
-    moop.solve_all(sim_max=100, plot=False)
+    moop.solve_all(sim_max=10, plot=False)#100
 
     # Retrieve results (select best design)
     results = moop.get_results()
     best = results.sort_values(by=obj_name).iloc[0] if not obj_name.startswith("-") else results.sort_values(by=obj_name, ascending=False).iloc[0]
 
     # Run simulation at best point to retrieve extended outputs
-    config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV", "-SF"])
+    config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV", "-SF", "nLoops"])
     x_input = {var: best[var] for var in design_variables.keys()}
     config.set_inputs(x_input)
     extended_outputs = config.sim_func(x_input)
@@ -111,6 +111,7 @@ for obj_name, description in objectives:
         "SM": x_input["specified_solar_multiple"],
         "T_loop_out": x_input["T_loop_out"],
         "SCA/loop": x_input["n_sca_per_loop"],
+        "nLoops": output_map.get("nLoops", "-"),
         "LCS [€]": output_map.get("-LCS", "-"),
         "LCOE [€/kWh]": output_map.get("LCOE", "-"),
         "Payback [yrs]": output_map.get("Payback", "-"),

@@ -52,7 +52,7 @@ profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 design_variables = {"tshours": ([0,24],"integer"),                        # Thermal storage hours
                    "specified_solar_multiple": ([0.5,5.0],"continuous"),  # Solar multiple (SM)
                    "T_loop_out":([200,230],"integer"),                    # Loop outlet temperature [°C]
-                   "n_sca_per_loop": ([7, 20], "integer"),                # SCAs per loop (discrete)
+                   "n_sca_per_loop": ([10, 40], "integer"),                # SCAs per loop (discrete)
                    }                     
 
 # -----------------------------
