@@ -9,15 +9,18 @@ from the PySAM module.
 This example uses the sammoo framework to demonstrate how to optimize
 three economic metrics simultaneously:
     - Levelized Cost of Energy (LCOE)
-    - Simple Payback Period
+    - Simple Payback Period (PBT)
     - Life Cycle Savings (LCS)
+    - Solar Fraction (SF)
 
 Design variables explored:
     - Thermal energy storage capacity (tshours)
     - Solar multiple (specified_solar_multiple)
     - HTF outlet temperature from solar loop (T_loop_out)
+    - Number of SCA per loop (n_sca_per_loop)
+    - Loop spacing (Row_Distance)
 
-The system uses the default industrial collector: 'Power Trough 250'.
+The system uses the industrial collector: 'NEP PolyTrough 1800'.
 """
 
 from sammoo import ConfigSelection, ParMOOSim
@@ -27,7 +30,7 @@ from sammoo.components import ThermalLoadProfileLPG
 # Toggle land-area constraint
 # -----------------------------
 ENABLE_LAND_CONSTRAINT = True
-MAX_LAND_AC = 1.0  # adjust as needed
+MAX_LAND_AC = 1.0  # adjust as needed (acres)
 
 constraints_dict = {"total_land_area": MAX_LAND_AC} if ENABLE_LAND_CONSTRAINT else {}
 
@@ -50,19 +53,20 @@ profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 # Define design space
 # -----------------------------
 design_variables = {"tshours": ([0,24],"integer"),                        # Thermal storage hours
-                   "specified_solar_multiple": ([0.5,5.0],"continuous"),  # Solar multiple (SM)
+                   "specified_solar_multiple": ([0.7,4.0],"continuous"),  # Solar multiple (SM)
                    "T_loop_out":([200,230],"integer"),                    # Loop outlet temperature [°C]
-                   "n_sca_per_loop": ([10, 40], "integer"),                # SCAs per loop (discrete)
+                   "n_sca_per_loop": ([25, 50], "integer"),               # SCAs per loop (discrete)
+                   "Row_Distance": ([2.0, 6.0], "continuous"),            # Row spacing in meters
                    }                     
 
 # -----------------------------
 # Define objective functions
 # -----------------------------
-obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
+# obj_functions = ["LCOE","-LCS"] # Minimize LCOE, maximize LCS via -LCS
+# obj_functions = ["PBT","-LCS"] # Minimize Payback simple, maximize LCS via -LCS
+obj_functions = ["PBT","-SF"] # Minimize Payback simple, maximize SF via -SF
 # obj_functions = ["LCOE","-NPV"] # Minimize LCOE, maximize NPV via -NPV
-# obj_functions = ["LCOE","-SF"]
 # obj_functions = ["LCOE","-annual_solar_fraction"] # Minimize LCOE, maximize SF
-# "Payback"
 
 # -----------------------------
 # Create configuration and apply thermal demand
@@ -71,10 +75,10 @@ config = ConfigSelection(
     config="Commercial owner",
     selected_outputs=obj_functions,
     design_variables=design_variables,
-    collector_name="Absolicon T160",
+    collector_name="NEP PolyTrough 1800",
     htf_name="Therminol VP-1",
     storage_fluid_name="Therminol VP-1",
-    verbose=0,
+    verbose=1,
     constraints_dict=constraints_dict,
 )
 
@@ -84,8 +88,8 @@ profile.apply_to_config(config)
 # -----------------------------
 # Initialize and solve optimization problem
 # -----------------------------
-my_moop = ParMOOSim(config, search_budget=50)
-my_moop.solve_all(sim_max=200)
+my_moop = ParMOOSim(config, search_budget=10)#50
+my_moop.solve_all(sim_max=50)#300
 
 # -----------------------------
 # Output results

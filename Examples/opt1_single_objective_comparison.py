@@ -2,14 +2,13 @@
 
 
 """
-Performs five independent single-objective thermo-economic optimizations
-for a parabolic trough CSP system design problem.
+Performs four independent single-objective thermo-economic optimizations
+for a parabolic trough IPH system design problem.
 
 Each optimization uses a different objective function:
     - Minimize Levelized Cost of Energy (LCOE)
-    - Minimize Simple Payback Period
+    - Minimize Simple Payback Period (PBT)
     - Maximize Life Cycle Savings (LCS)   [via -LCS]
-    - Maximize Net Present Value (NPV)    [via -NPV]
     - Maximize Solar Fraction (SF)        [via -SF]
 
 All optimizations explore the same design space:
@@ -17,13 +16,14 @@ All optimizations explore the same design space:
     - Solar multiple (SM)
     - Loop outlet temperature (T_loop_out)
     - Number of SCA per loop (n_sca_per_loop)
+    - Loop spacing (Row_Distance)
 
 Results show how different objective choices lead to different
 optimal design points, demonstrating the trade-offs involved in
 techno-economic decision-making.
 
 Note: All simulations are executed through NREL's PySAM using
-the sammoo framework for integration with the optimization workflow.
+the `sammoo` framework for integration with the optimization workflow.
 """
 
 import pandas as pd
@@ -48,20 +48,19 @@ monthly_data = {
 profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
 # System design variables and bounds
-design_variables = {
-    "tshours": ([0, 24], "integer"),
-    "specified_solar_multiple": ([0.5, 5.0], "continuous"),
-    "T_loop_out": ([200, 230], "integer"),
-    "n_sca_per_loop": ([30, 70], "integer"),
-}
+design_variables = {"tshours": ([0,24],"integer"),                        # Thermal storage hours
+                   "specified_solar_multiple": ([0.7,4.0],"continuous"),  # Solar multiple (SM)
+                   "T_loop_out":([200,230],"integer"),                    # Loop outlet temperature [°C]
+                   "n_sca_per_loop": ([25, 50], "integer"),               # SCAs per loop (discrete)
+                   "Row_Distance": ([2.0, 6.0], "continuous"),            # Row spacing in meters
+                   } 
 
 # List of single-objective optimizations to run
 objectives = [
     ("-LCS", "Maximize Life Cycle Savings"),
     ("LCOE", "Minimize Levelized Cost of Energy"),
-    #("Payback", "Minimize Simple Payback Period"),
-    #("-NPV", "Maximize Net Present Value"),
-    #("-SF", "Maximize Solar Fraction")
+    ("PBT", "Minimize Simple Payback Period"),
+    ("-SF", "Maximize Solar Fraction")
 ]
 
 # Store best results from each optimization case
@@ -76,7 +75,7 @@ for obj_name, description in objectives:
         config="Commercial owner",
         selected_outputs=[obj_name],
         design_variables=design_variables,
-        collector_name="Absolicon T160",
+        collector_name="NEP PolyTrough 1800",
         htf_name="Therminol VP-1",
         storage_fluid_name="Therminol VP-1",
         verbose=0,
@@ -87,17 +86,17 @@ for obj_name, description in objectives:
     profile.apply_to_config(config)
 
     # Create optimizer
-    moop = ParMOOSim(config, search_budget=5)#50
+    moop = ParMOOSim(config, search_budget=15)#50
 
     # Run optimization (adjust sim_max depending on model runtime cost)
-    moop.solve_all(sim_max=10, plot=False)#100
+    moop.solve_all(sim_max=40, plot=False)#100
 
     # Retrieve results (select best design)
     results = moop.get_results()
     best = results.sort_values(by=obj_name).iloc[0] if not obj_name.startswith("-") else results.sort_values(by=obj_name, ascending=False).iloc[0]
 
     # Run simulation at best point to retrieve extended outputs
-    config.set_debug_outputs(["-LCS", "LCOE", "Payback", "-NPV", "-SF", "nLoops"])
+    config.set_debug_outputs(["-LCS", "LCOE", "PBT", "-NPV", "-SF", "nLoops"])
     x_input = {var: best[var] for var in design_variables.keys()}
     config.set_inputs(x_input)
     extended_outputs = config.sim_func(x_input)
@@ -114,7 +113,7 @@ for obj_name, description in objectives:
         "nLoops": output_map.get("nLoops", "-"),
         "LCS [€]": output_map.get("-LCS", "-"),
         "LCOE [€/kWh]": output_map.get("LCOE", "-"),
-        "Payback [yrs]": output_map.get("Payback", "-"),
+        "Payback [yrs]": output_map.get("PBT", "-"),
         "NPV [€]": output_map.get("-NPV", "-"),
         "SF [%]": output_map.get("-SF", "-"),
     })

@@ -61,10 +61,10 @@ objective_functions = ["total_land_area", "-CF"]
 config = ConfigSelection(config="Commercial owner",
                          selected_outputs=objective_functions,
                          design_variables=design_variables,
-                         collector_name="Absolicon T160",
+                         collector_name="NEP PolyTrough 1800",
                          htf_name="Therminol VP-1",
                          storage_fluid_name="Therminol VP-1",
-                         verbose=0,
+                         verbose=1,
                          constraints_dict=constraints_dict,
                          )
 
