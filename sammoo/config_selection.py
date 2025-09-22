@@ -98,7 +98,7 @@ class ConfigSelection:
         self.output_name_map = {
             "LCOE": "lcoe_real",
             "-NPV": "npv",
-            "Payback": "payback",
+            "PBT": "payback",
             "-Capacity Factor": "capacity_factor",
             "-Savings": "savings_year1",
             "-CF": "capacity_factor",
@@ -141,6 +141,7 @@ class ConfigSelection:
             "T_shutdown": self.solar_field_group_object,
             "cold_tank_Thtr": self.TES_group_object, # Minimum allowable cold tank HTF temp [C]
             "hot_tank_Thtr": self.TES_group_object, # Minimum allowable hot tank HTF temp [C]
+            "azimuth": self.solar_field_group_object,
         }
 
         match self.config:
@@ -491,7 +492,9 @@ class ConfigSelection:
                 if group_object is not None:
                     setattr(group_object, var_name, x[var_name])
                 else:
-                    print(f"Warning: Variable '{var_name}' not mapped to any group object")
+                    raise ValueError(
+                        f"Design variable '{var_name}' not found in ConfigSelection mapping."
+                    )
 
             # --- Estimate total_installed_cost dynamically ---
             try:
