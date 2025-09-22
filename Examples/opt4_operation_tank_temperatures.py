@@ -1,5 +1,10 @@
-# examples/opt4_startup_shutdown.py
+# examples/opt4_operation_tank_temperatures.py
 
+"""
+Multi-objective optimization of cold and hot tank set temperatures 
+for operational performance of the SHIP plant. 
+Objectives: minimize LCOE and maximize SF.
+"""
 
 from sammoo import ConfigSelection, ParMOOSim
 from sammoo.components import ThermalLoadProfileLPG
@@ -28,61 +33,56 @@ monthly_data = {
 # -----------------------------
 profile = ThermalLoadProfileLPG(monthly_kg=monthly_data)
 
-# ------------------------
-# Definición de variables
-# ------------------------
+
 
 # design_variables = {
 #     "T_startup": ([150.0, 160.0], "continuous"),
 #     "T_shutdown": ([150.0, 160.0], "continuous")
 # }
 
+# -----------------------------
+# Define design space
+# -----------------------------
 design_variables = {
-    "cold_tank_Thtr": ([50.0, 90.0], "continuous"),
-    "hot_tank_Thtr": ([100.0, 170.0], "continuous")
+    "cold_tank_Thtr": ([40.0, 90.0], "continuous"),
+    "hot_tank_Thtr": ([100.0, 200.0], "continuous")
 }
 
-# Objetivos a optimizar
-# - LCOE debe minimizarse
-# - Energy (negativo para maximizar)
-selected_outputs = ["LCOE", "-SF"]
+# -----------------------------
+# Define objective functions
+# -----------------------------
+selected_outputs = ["LCOE", "-SF"] # Minimize LCOE, maximize SF via -SF
 
 # ------------------------
-# Configuración del modelo
+# Model configuration
 # ------------------------
-
 config = ConfigSelection(
     config="Commercial owner",
     selected_outputs=selected_outputs,
     design_variables=design_variables,
-    collector_name="Absolicon T160",
+    collector_name="NEP PolyTrough 1800",
     htf_name="Therminol VP-1",
     storage_fluid_name="Therminol VP-1",
-    verbose=0,
+    verbose=1,
     constraints_dict=constraints_dict,
 )
+
+# Fix the global design to Candidate A
+config.set_inputs({
+    "tshours": 19,                    # Thermal energy storage duration [h]
+    "specified_solar_multiple": 3.155,# Solar multiple (design capacity multiplier)
+    "T_loop_out": 224.0,              # Loop outlet temperature [°C]
+    "n_sca_per_loop": 41,
+    "Row_Distance": 4.766,
+})
 
 # Apply demand profile → sets timestep_load_abs, q_pb_design and system_capacity
 profile.apply_to_config(config)
 
-# Set plant design point (fixed thermal capacity scenario)
-config.set_inputs({
-    "tshours": 5,                    # Thermal energy storage duration [h]
-    "T_loop_out": 210.0,             # Loop outlet temperature [°C]
-    "specified_solar_multiple": 1.8, # Solar multiple (design capacity multiplier)
-    "n_sca_per_loop": 18,
-})
+# Initialize and solve optimization problem
+moop = ParMOOSim(config, search_budget=10)
+moop.solve_all(sim_max=50)
 
-# ------------------------
-# Ejecutar optimización
-# ------------------------
-
-moop = ParMOOSim(config, search_budget=50)
-moop.solve_all(sim_max=200)
-
-# ------------------------
-# Mostrar resultados
-# ------------------------
-
+# Show results
 results = moop.get_results()
 print(results)
