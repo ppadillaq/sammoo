@@ -25,7 +25,7 @@ It allows you to:
 - Analyze Pareto fronts and export results.
 
 <p align="center">
-  <img src="assets/example_Pareto_Front.svg" alt="Pareto Front" width="400"/>
+  <img src="https://raw.githubusercontent.com/ppadillaq/sammoo/master/assets/example_Pareto_Front.svg" alt="Pareto Front" width="400"/>
 </p>
 
 ## 📦 Features
