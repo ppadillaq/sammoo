@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-03-14
+
+### Added
+- **Constraint support in optimization framework**:
+  - Added `_add_constraints()` method in `ParMOOSim`.
+  - Added support for constraint functions in `sim_func()`.
+  - Added helper `_get_output_value()` to retrieve individual simulation outputs for constraint evaluation.
+  - Added configuration-based constraint definition.
+- **New design variables** available for optimization.
+- **New output variables** available for objective and constraint evaluation.
+- Optional `storage_fluid` parameter in `ConfigSelection` constructor to select the thermal storage fluid.
+- New example: optimization of **solar field orientation**.
+- Script to extract **polynomial fits for IAM coefficients** from collector datasheets.
+- Additional test script.
+
+### Changed
+- Updated **collector database** with improved parameters extracted from manufacturer datasheets.
+- Updated IAM coefficients calculated using **quintic polynomial fits**.
+- Updated receiver parameters (inner diameter corresponding to **Absolicon T160**).
+- Updated and refactored multiple example scripts.
+- Improved validation in `ConfigSelection`: raises an exception when a design variable cannot be mapped.
+- Adjusted default solar field **row distance to 3 m**.
+- Increased default **search_budget** and **sim_max** values in optimization settings.
+- Minor internal refactoring and cleanup in optimization routines.
+
+### Documentation
+- Updated `README.md` with a reference and link to the UNED repository hosting the Master's thesis where **sammoo** was developed and applied.
+
+### Fixed
+- Minor internal code cleanup in `_add_objectives()` and example scripts.
+
 ## [0.2.0] - 2025-08-12
 
 ### Added
@@ -62,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Nothing.
 
+[0.3.0]: https://github.com/ppadillaq/sammoo/releases/tag/v0.3.0
 [0.2.0]: https://github.com/ppadillaq/sammoo/releases/tag/v0.2.0
 [0.1.0]: https://github.com/ppadillaq/sammoo/releases/tag/v0.1.0
 
