@@ -217,11 +217,11 @@ Your custom weather files must follow the TMY3 format used by SAM.
 
 ## 📚 Publications
 
-The version **0.2.0** of this project was submitted as part of the following Master's Thesis:
+Version **0.3.0** of this project was used in the development of the following master's thesis in the Master's programme in *Research in Industrial Technologies* (Energy Engineering track), UNED (Spain):
 
-- Pedro Padilla Quesada. *Optimization of Solar Industrial Process Heat (SIPH) Systems with Parabolic Troughs using PySAM and Multi-objective Optimization*. Master’s Thesis in Research in Industrial Technologies, Universidad Nacional de Educación a Distancia (UNED), Spain, 2025.
+- Padilla-Quesada, P. (2025). *Sammoo: Un marco de optimización multiobjetivo basada en simulaciones para el diseño de sistemas solares térmicos de calor de proceso industrial* [Trabajo Fin de Máster, Universidad Nacional de Educación a Distancia (UNED)]. https://hdl.handle.net/20.500.14468/31636
 
-[Download full thesis (PDF)](link_to_pdf_if_any)
+[Download full thesis (PDF)](https://e-spacio.uned.es/bitstreams/87c9541c-8e90-4a36-a15d-b0c7b5e2132f/download)
 
 Future versions may include broader support for other CSP technologies, reinforcement learning-based controllers, and integration with digital twin platforms.
 
